@@ -25,8 +25,9 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    // SỬA ĐỔI: Sử dụng model flash mới hơn nếu có
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash-latest" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-flash-latest" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -151,10 +152,9 @@ const synth = window.speechSynthesis;
 let voices = []; // To store available speech synthesis voices
 let isSpeechEnabled = true;
 
-// Audio State for Listening Quiz
-let audioState = 'idle'; 
-let lastSpokenCharIndex = 0;
-let isPausedByUser = false;
+// SỬA LỖI: Trạng thái âm thanh cho bài nghe
+let audioState = 'idle'; // 'idle', 'playing', 'paused', 'finished'
+let currentUtterance = null; // Lưu trữ utterance hiện tại để có thể resume
 let soundEffects;
 
 // Speaker Icon SVGs
@@ -186,7 +186,11 @@ function playSound(type) {
 
 // --- Core Functions ---
 function showView(viewId) { 
-    if (synth.speaking) { synth.cancel(); }
+    if (synth.speaking) { 
+        synth.cancel(); // Dừng mọi âm thanh đang phát khi chuyển view
+        audioState = 'idle';
+        currentUtterance = null;
+    }
     clearTimeout(autoAdvanceTimer);
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); 
     document.getElementById(viewId).classList.add('active'); 
@@ -781,10 +785,15 @@ function renderQuiz() {
     
     passageContainer.classList.toggle('hidden', !isReading);
     if (isReading) renderTextWithClickableWords(passageText, quizData.raw.passage);
+    
+    // SỬA LỖI: Logic hiển thị cho phần Nghe
     audioPlayerContainer.classList.toggle('hidden', !isListening);
     transcriptControls.classList.toggle('hidden', !isListening);
     transcriptContainer.classList.add('hidden'); 
-    if (isListening) setupAudioPlayer();
+    if (isListening) {
+        setupAudioPlayer();
+        renderTranscript(quizData.raw.script); // Hiển thị lời thoại
+    }
     renderQuestion();
 }
 
@@ -937,7 +946,11 @@ function renderQuestion() {
                 renderTextWithClickableWords(optionText, option); // Make words in options clickable
                 button.appendChild(optionText);
                 button.onclick = () => handleAnswer(option);
-                if (quizData.quizType === 'listening') { button.disabled = true; button.classList.add('opacity-50', 'cursor-not-allowed'); }
+                // SỬA LỖI: Vô hiệu hóa nút cho đến khi audio phát xong
+                if (quizData.quizType === 'listening') { 
+                    button.disabled = true; 
+                    button.classList.add('opacity-50', 'cursor-not-allowed'); 
+                }
                 optionsContainer.appendChild(button);
             });
             break;
@@ -2160,12 +2173,124 @@ async function deleteWordFromDeck(wordId, deckId) {
     }
 }
 
-// --- Audio Functions for Listening Quiz ---
+// ========================================================================
+// SỬA LỖI & CẢI TIẾN: HỆ THỐNG PHÁT ÂM THANH CHO BÀI NGHE
+// ========================================================================
+
+/**
+ * Chuẩn bị trình phát âm thanh cho bài nghe mới.
+ */
 function setupAudioPlayer() {
-    audioState = 'idle'; lastSpokenCharIndex = 0;
-    playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden');
-    audioStatus.textContent = "Nhấn để nghe"; playAudioBtn.disabled = false;
+    audioState = 'idle';
+    currentUtterance = null;
+    playIcon.classList.remove('hidden');
+    pauseIcon.classList.add('hidden');
+    audioStatus.textContent = "Nhấn để nghe";
+    playAudioBtn.disabled = false;
+    transcriptContainer.innerHTML = ''; // Xóa lời thoại cũ
+    showTranscriptBtn.textContent = 'Hiện lời thoại';
 }
+
+/**
+ * Hiển thị lời thoại và chia thành các thẻ <span> để tô sáng.
+ * @param {string} scriptText - Toàn bộ văn bản của lời thoại.
+ */
+function renderTranscript(scriptText) {
+    transcriptContainer.innerHTML = '';
+    if (!scriptText) return;
+    const words = scriptText.split(/(\s+)/); // Tách từ và giữ lại khoảng trắng
+    words.forEach(word => {
+        if (word.trim().length > 0) {
+            const wordSpan = document.createElement('span');
+            wordSpan.textContent = word;
+            wordSpan.className = 'transcript-word';
+            transcriptContainer.appendChild(wordSpan);
+        } else {
+            transcriptContainer.appendChild(document.createTextNode(word));
+        }
+    });
+}
+
+/**
+ * Chức năng chính để phát âm thanh cho bài nghe.
+ * Bao gồm xử lý trạng thái, tô sáng từ và mở khóa câu trả lời.
+ */
+function playListeningAudio() {
+    const scriptText = quizData.raw.script;
+    if (!scriptText || !isSpeechEnabled) return;
+
+    // Dừng âm thanh đang phát nếu có
+    if (synth.speaking) {
+        synth.cancel();
+    }
+    
+    // Tạo một utterance mới
+    currentUtterance = new SpeechSynthesisUtterance(scriptText);
+    
+    // Chọn giọng đọc
+    let selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google'));
+    if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang === 'en-US');
+    currentUtterance.voice = selectedVoice;
+    currentUtterance.rate = 0.9;
+
+    // Xử lý sự kiện khi bắt đầu phát
+    currentUtterance.onstart = () => {
+        audioState = 'playing';
+        audioStatus.textContent = "Đang phát...";
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        playAudioBtn.disabled = false;
+    };
+
+    // Xử lý sự kiện tô sáng từ
+    currentUtterance.onboundary = (event) => {
+        if (event.name === 'word') {
+            const allWords = transcriptContainer.querySelectorAll('.transcript-word');
+            // Tìm từ hiện tại dựa trên charIndex
+            let charCount = 0;
+            for (let i = 0; i < allWords.length; i++) {
+                charCount += allWords[i].textContent.length;
+                if (charCount > event.charIndex) {
+                    // Xóa highlight cũ
+                    document.querySelectorAll('.transcript-word.highlight').forEach(el => el.classList.remove('highlight'));
+                    // Highlight từ mới
+                    allWords[i].classList.add('highlight');
+                    break;
+                }
+            }
+        }
+    };
+
+    // Xử lý sự kiện khi phát xong
+    currentUtterance.onend = () => {
+        audioState = 'finished';
+        audioStatus.textContent = "Đã phát xong. Chọn đáp án.";
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        playAudioBtn.disabled = true; // Không cho phát lại ngay
+        currentUtterance = null;
+        document.querySelectorAll('.transcript-word.highlight').forEach(el => el.classList.remove('highlight'));
+
+        // Mở khóa các nút lựa chọn
+        document.querySelectorAll('.option-btn').forEach(button => {
+            button.disabled = false;
+            button.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+    };
+
+    // Xử lý lỗi
+    currentUtterance.onerror = (e) => {
+        console.error("SpeechSynthesis Error:", e);
+        audioStatus.textContent = "Lỗi phát âm thanh";
+        audioState = 'idle';
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+    };
+
+    // Bắt đầu phát
+    synth.speak(currentUtterance);
+}
+
 
 // --- Library & History Saving ---
 async function saveWritingResult(originalText, feedback) {
@@ -2282,7 +2407,7 @@ function loadVoices() {
  */
 function playSpeech(text, onEndCallback = () => {}) {
     if (!isSpeechEnabled) {
-        onEndCallback();
+        if(onEndCallback) onEndCallback();
         return;
     }
     
@@ -2305,7 +2430,7 @@ function playSpeech(text, onEndCallback = () => {}) {
     utterance.onend = onEndCallback;
     utterance.onerror = (e) => {
         console.error("SpeechSynthesis Error:", e);
-        onEndCallback(); // Vẫn gọi callback để luồng không bị kẹt
+        if(onEndCallback) onEndCallback(); // Vẫn gọi callback để luồng không bị kẹt
     };
 
     synth.speak(utterance);
@@ -2813,16 +2938,29 @@ topicSelect.addEventListener('change', () => {
 filterSkill.addEventListener('change', renderHistoryList);
 filterLevel.addEventListener('change', renderHistoryList);
 
+// SỬA LỖI: Cập nhật trình xử lý sự kiện cho nút phát âm thanh
 playAudioBtn.addEventListener('click', () => {
-    // This is for the listening quiz, not conversation
     if (audioState === 'playing') {
-        isPausedByUser = true; synth.cancel(); audioState = 'paused';
-        playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden');
+        // Tạm dừng
+        synth.pause();
+        audioState = 'paused';
         audioStatus.textContent = "Đã tạm dừng";
-    } else { 
-        // Logic to resume/play audio for listening quiz
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+    } else if (audioState === 'paused') {
+        // Tiếp tục
+        synth.resume();
+        audioState = 'playing';
+        audioStatus.textContent = "Đang phát...";
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+    } else if (audioState === 'idle') {
+        // Bắt đầu phát từ đầu
+        playListeningAudio();
     }
+    // Nếu audioState là 'finished', không làm gì cả để tránh phát lại
 });
+
 
 showTranscriptBtn.addEventListener('click', () => {
     const isHidden = transcriptContainer.classList.toggle('hidden');
@@ -2891,6 +3029,17 @@ function setupApplication() {
     handleQuizTypeChange();
     loadVoices(); // Tải giọng nói khi khởi động
     updateSpeechToggleIcon(); // Cập nhật icon loa
+    // Thêm style cho việc tô sáng từ trong transcript
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .transcript-word.highlight {
+            background-color: #fef08a; /* yellow-200 */
+            color: #713f12; /* yellow-900 */
+            padding: 2px 0;
+            border-radius: 3px;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 function updateSpeechToggleIcon() {
