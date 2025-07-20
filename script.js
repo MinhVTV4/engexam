@@ -25,8 +25,8 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -151,8 +151,8 @@ const synth = window.speechSynthesis;
 let voices = []; // To store available speech synthesis voices
 let isSpeechEnabled = true;
 
-// Audio State for Listening Quiz
-let audioState = 'idle'; 
+// SỬA LỖI: Tách biệt trạng thái cho trình phát âm thanh của bài Nghe
+let audioState = 'idle'; // 'idle', 'playing', 'paused'
 let lastSpokenCharIndex = 0;
 let isPausedByUser = false;
 let soundEffects;
@@ -781,10 +781,23 @@ function renderQuiz() {
     
     passageContainer.classList.toggle('hidden', !isReading);
     if (isReading) renderTextWithClickableWords(passageText, quizData.raw.passage);
+    
+    // SỬA LỖI: Logic cho bài Nghe
     audioPlayerContainer.classList.toggle('hidden', !isListening);
     transcriptControls.classList.toggle('hidden', !isListening);
     transcriptContainer.classList.add('hidden'); 
-    if (isListening) setupAudioPlayer();
+    if (isListening) {
+        setupAudioPlayer();
+        // SỬA LỖI: Điền nội dung vào transcript để highlight
+        transcriptContainer.innerHTML = '';
+        const words = quizData.raw.script.split(/(\s+)/);
+        words.forEach(word => {
+            const span = document.createElement('span');
+            span.textContent = word;
+            transcriptContainer.appendChild(span);
+        });
+    }
+    
     renderQuestion();
 }
 
@@ -2160,106 +2173,8 @@ async function deleteWordFromDeck(wordId, deckId) {
     }
 }
 
-// --- Audio Functions for Listening Quiz ---
-function setupAudioPlayer() {
-    audioState = 'idle'; lastSpokenCharIndex = 0;
-    playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden');
-    audioStatus.textContent = "Nhấn để nghe"; playAudioBtn.disabled = false;
-}
-
-// --- Library & History Saving ---
-async function saveWritingResult(originalText, feedback) {
-    if (!auth.currentUser) return;
-    const resultsCollectionRef = collection(db, "users", auth.currentUser.uid, "quizResults");
-    const newResult = {
-        level: quizData.level,
-        type: 'writing',
-        topic: writingTopic.textContent,
-        originalText: originalText,
-        feedback: feedback,
-        createdAt: serverTimestamp()
-    };
-    try {
-        await addDoc(resultsCollectionRef, newResult);
-        userHistoryCache = []; // Invalidate cache
-    } catch (error) {
-        console.error("Lỗi khi lưu kết quả luyện viết: ", error);
-    }
-}
-
-async function saveQuizToLibrary(quizDataToSave) {
-    if (!auth.currentUser) return;
-    // Bỏ qua việc tự động lưu để tránh làm rác thư viện
-    // Người dùng nên chủ động lưu từ màn hình kết quả
-}
-
-async function showLibrary() {
-    if (!auth.currentUser) { showError("Bạn cần đăng nhập để xem thư viện."); return; }
-    showView('library-view');
-    libraryList.innerHTML = '<div class="spinner mx-auto"></div>';
-    const libraryRef = collection(db, "quizLibrary");
-    try {
-        const querySnapshot = await getDocs(query(libraryRef));
-        const quizzes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderLibraryList(quizzes);
-    } catch (error) { console.error("Error fetching quiz library:", error); libraryList.innerHTML = '<p class="text-center text-red-500">Không thể tải thư viện.</p>'; }
-}
-
-function renderLibraryList(quizzes) {
-    if (quizzes.length === 0) { libraryList.innerHTML = '<p class="text-center text-slate-500">Thư viện của bạn còn trống.</p>'; return; }
-    libraryList.innerHTML = '';
-    quizzes.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).forEach(quiz => {
-        const date = quiz.createdAt ? new Date(quiz.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : 'N/A';
-        const typeText = quiz.quizType === 'reading' ? 'Đọc hiểu' : (quiz.quizType === 'grammar' ? 'Ngữ pháp' : (quiz.quizType === 'listening' ? 'Nghe hiểu' : 'Từ vựng'));
-        const item = document.createElement('div');
-        item.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200';
-        item.innerHTML = `<p class="font-bold text-base text-slate-800 capitalize">${quiz.topic || 'Ngữ pháp tổng hợp'} <span class="text-sm font-normal text-amber-600">(${typeText})</span></p><div class="text-xs text-slate-500 mt-1"><span>Trình độ: ${quiz.level.toUpperCase()}</span> | <span>${quiz.count || (quiz.quizContent?.questions?.length || quiz.quizContent?.length)} câu</span> | <span>Ngày tạo: ${date}</span></div><div class="flex justify-end items-center space-x-2 mt-2 pt-2 border-t border-slate-200"><button class="view-vocab-btn bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-1 px-3 rounded-full" data-quiz-id="${quiz.id}">Xem từ vựng</button><button class="retry-library-btn bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold py-1 px-3 rounded-full" data-quiz-id="${quiz.id}">Làm lại</button></div>`;
-        libraryList.appendChild(item);
-    });
-    document.querySelectorAll('.retry-library-btn').forEach(button => { button.addEventListener('click', (e) => retrySavedQuiz(e.target.dataset.quizId)); });
-    document.querySelectorAll('.view-vocab-btn').forEach(button => { button.addEventListener('click', (e) => showRelatedVocabulary(e.target.dataset.quizId)); });
-}
-
-async function retrySavedQuiz(quizId) {
-    const docRef = doc(db, "quizLibrary", quizId);
-    try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const savedQuiz = docSnap.data();
-            currentQuizType = 'standard';
-            quizData = {
-                topic: savedQuiz.topic, level: savedQuiz.level, quizType: savedQuiz.quizType,
-                vocabMode: savedQuiz.vocabMode, count: savedQuiz.count, raw: savedQuiz.quizContent, isRetry: true
-            };
-            sessionResults = []; currentQuestionIndex = 0; score = 0;
-            renderQuiz(); showView('quiz-view');
-        }
-    } catch (error) { showError("Không thể tải lại bài tập này."); }
-}
-
-async function showRelatedVocabulary(quizId) {
-    const docRef = doc(db, "quizLibrary", quizId);
-    try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const vocabData = docSnap.data().relatedVocabulary;
-            vocabList.innerHTML = '';
-            if (vocabData && vocabData.length > 0) {
-                vocabData.forEach(v => {
-                    if (!v.word || !v.meaning) return;
-                    const item = document.createElement('div');
-                    item.className = 'p-3 border-b border-slate-200 last:border-b-0';
-                    item.innerHTML = `<div class="flex items-center"><b class="text-lg text-slate-800">${v.word}</b><span class="ml-3 text-slate-500">${v.ipa || ''}</span><button class="speak-btn ml-auto p-1 rounded-full hover:bg-sky-100" onclick="window.playSpeech('${v.word}')"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-600"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button></div><p class="text-slate-600">${v.meaning}</p>`;
-                    vocabList.appendChild(item);
-                });
-            } else { vocabList.innerHTML = '<p class="text-center text-slate-500 p-4">Không có từ vựng nào.</p>'; }
-            showModal(vocabModal);
-        } else { showError("Không tìm thấy bài tập."); }
-    } catch (error) { console.error("Error loading related vocabulary:", error); showError("Không thể tải danh sách từ vựng."); }
-}
-
 // ========================================================================
-// --- SPEECH & CONVERSATION (V9) ---
+// --- SPEECH, AUDIO & CONVERSATION ---
 // ========================================================================
 
 /**
@@ -2268,7 +2183,6 @@ async function showRelatedVocabulary(quizId) {
 function loadVoices() {
     voices = synth.getVoices();
     if (voices.length === 0) {
-        // Nếu danh sách rỗng, chờ sự kiện 'voiceschanged'
         synth.onvoiceschanged = () => {
             voices = synth.getVoices();
         };
@@ -2276,7 +2190,7 @@ function loadVoices() {
 }
 
 /**
- * Hàm đọc văn bản (Text-to-Speech) đã được cải tiến để ổn định hơn.
+ * Hàm đọc văn bản chung (cho hội thoại, tra từ).
  * @param {string} text - Văn bản cần đọc.
  * @param {function} onEndCallback - Hàm callback sẽ được gọi khi đọc xong.
  */
@@ -2285,15 +2199,9 @@ function playSpeech(text, onEndCallback = () => {}) {
         onEndCallback();
         return;
     }
-    
-    // Đảm bảo dừng lần đọc trước đó
-    if (synth.speaking) {
-        synth.cancel();
-    }
+    if (synth.speaking) synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-
-    // Logic chọn giọng nói linh hoạt
     let selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google'));
     if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang === 'en-US');
     if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang.startsWith('en-'));
@@ -2305,13 +2213,90 @@ function playSpeech(text, onEndCallback = () => {}) {
     utterance.onend = onEndCallback;
     utterance.onerror = (e) => {
         console.error("SpeechSynthesis Error:", e);
-        onEndCallback(); // Vẫn gọi callback để luồng không bị kẹt
+        onEndCallback();
+    };
+    synth.speak(utterance);
+}
+window.playSpeech = playSpeech;
+
+/**
+ * SỬA LỖI: Hàm chuyên dụng để phát âm thanh cho bài Nghe hiểu.
+ * Quản lý trạng thái, highlight transcript và kích hoạt nút trả lời.
+ * @param {string} text - Đoạn script của bài nghe.
+ */
+function playListeningAudio(text) {
+    if (synth.speaking) synth.cancel();
+    isPausedByUser = false;
+
+    const utterance = new SpeechSynthesisUtterance(text.substring(lastSpokenCharIndex));
+    
+    let selectedVoice = voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google'));
+    if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang === 'en-US');
+    if (!selectedVoice) selectedVoice = voices.find(voice => voice.lang.startsWith('en-'));
+    utterance.voice = selectedVoice;
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    // Logic highlight transcript
+    const wordElements = Array.from(transcriptContainer.querySelectorAll('span'));
+    utterance.onboundary = (event) => {
+        let charIndexWithOffset = lastSpokenCharIndex + event.charIndex;
+        wordElements.forEach(el => el.classList.remove('highlight-word'));
+        let charCounter = 0;
+        for (let i = 0; i < wordElements.length; i++) {
+            charCounter += wordElements[i].textContent.length;
+            if (charCounter > charIndexWithOffset) {
+                wordElements[i].classList.add('highlight-word');
+                break;
+            }
+        }
+    };
+    
+    utterance.onstart = () => {
+        audioState = 'playing';
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        audioStatus.textContent = "Đang phát...";
+    };
+
+    utterance.onend = () => {
+        if (!isPausedByUser) {
+            lastSpokenCharIndex = 0;
+            audioState = 'idle';
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            audioStatus.textContent = "Nghe lại";
+            
+            // Kích hoạt lại các nút đáp án
+            Array.from(optionsContainer.children).forEach(button => {
+                button.disabled = false;
+                button.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+            wordElements.forEach(el => el.classList.remove('highlight-word'));
+        }
+    };
+
+    utterance.onerror = (e) => {
+        audioState = 'idle';
+        audioStatus.textContent = "Lỗi phát âm thanh";
+        console.error("SpeechSynthesis Error:", e);
     };
 
     synth.speak(utterance);
 }
-// Export to global scope for inline onclick handlers
-window.playSpeech = playSpeech;
+
+
+/**
+ * Thiết lập trạng thái ban đầu cho trình phát âm thanh của bài Nghe.
+ */
+function setupAudioPlayer() {
+    audioState = 'idle';
+    lastSpokenCharIndex = 0;
+    playIcon.classList.remove('hidden');
+    pauseIcon.classList.add('hidden');
+    audioStatus.textContent = "Nhấn để nghe";
+    playAudioBtn.disabled = false;
+}
 
 /**
  * Thêm một tin nhắn vào nhật ký hội thoại.
@@ -2323,7 +2308,6 @@ function addMessageToLog(logEl, sender, text) {
     const messageDiv = document.createElement('div');
     const isAI = sender === 'ai';
     
-    // Cấu trúc tin nhắn
     messageDiv.className = `flex items-start gap-2.5 ${isAI ? '' : 'flex-row-reverse'}`;
     messageDiv.innerHTML = `
         <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 border-gray-200 rounded-xl ${isAI ? 'bg-slate-100' : 'bg-indigo-100'}">
@@ -2335,7 +2319,6 @@ function addMessageToLog(logEl, sender, text) {
         ${isAI ? `<button class="speak-message-btn" data-text="${encodeURIComponent(text)}">${speakMessageIcon}</button>` : ''}
     `;
     
-    // Xóa chỉ báo "đang gõ" trước khi thêm tin nhắn mới
     const typingIndicator = logEl.querySelector('#ai-typing-indicator, #ai-practice-typing-indicator');
     if (typingIndicator) {
         logEl.insertBefore(messageDiv, typingIndicator);
@@ -2381,7 +2364,6 @@ function initSpeechRecognition({ onResult, onError, onEnd }) {
 function setConversationUIState(status, elements) {
     const { micBtn, inputArea, typingIndicator, errorEl } = elements;
     
-    // Reset tất cả
     micBtn.disabled = false;
     micBtn.classList.remove('mic-recording');
     inputArea.classList.remove('hidden');
@@ -2403,7 +2385,6 @@ function setConversationUIState(status, elements) {
             inputArea.classList.add('hidden');
             break;
         case CONVERSATION_STATUS.IDLE:
-            // Trạng thái mặc định đã được reset ở trên
             break;
     }
 }
@@ -2430,14 +2411,12 @@ function handleSpeechRecognitionError(errorType, errorEl) {
 async function startDiagnosticConversation() {
     currentQuizType = 'diagnostic';
     showView('diagnostic-conversation-view');
-    conversationLog.innerHTML = ''; // Xóa log cũ
-    
-    // Thêm lại chỉ báo gõ
+    conversationLog.innerHTML = ''; 
     conversationLog.appendChild(aiTypingIndicator);
 
     diagnosticConversationState = {
         history: [],
-        status: CONVERSATION_STATUS.THINKING, // Bắt đầu với trạng thái AI đang "suy nghĩ" câu chào
+        status: CONVERSATION_STATUS.THINKING,
         isFinished: false,
         recognition: initSpeechRecognition({
             onResult: (transcript) => handleDiagnosticResponse(transcript, 'speech'),
@@ -2447,7 +2426,6 @@ async function startDiagnosticConversation() {
                 setConversationUIState(diagnosticConversationState.status, { micBtn: micButton, inputArea: conversationInputArea, typingIndicator: aiTypingIndicator, errorEl: conversationError });
             },
             onEnd: () => {
-                // Chỉ chuyển về IDLE nếu không đang trong quá trình xử lý
                 if (diagnosticConversationState.status === CONVERSATION_STATUS.LISTENING) {
                     diagnosticConversationState.status = CONVERSATION_STATUS.IDLE;
                     setConversationUIState(diagnosticConversationState.status, { micBtn: micButton, inputArea: conversationInputArea, typingIndicator: aiTypingIndicator, errorEl: conversationError });
@@ -2660,9 +2638,7 @@ function toggleSpeech() {
     if (!isSpeechEnabled && synth.speaking) {
         synth.cancel();
     }
-    const icon = isSpeechEnabled ? speakerOnIcon : speakerOffIcon;
-    toggleDiagnosticSpeechBtn.innerHTML = icon;
-    togglePracticeSpeechBtn.innerHTML = icon;
+    updateSpeechToggleIcon();
 }
 
 
@@ -2782,17 +2758,14 @@ addSoundToListener(togglePracticeSpeechBtn, 'click', toggleSpeech);
 // Event Delegation for dynamically created elements
 appContainer.addEventListener('click', (e) => {
     const target = e.target;
-    // Notebook actions
     const openDeckTarget = target.closest('[data-action="open-deck"]');
     if (openDeckTarget) { playSound('click'); const { deckId, deckName } = openDeckTarget.dataset; showDeckDetails(deckId, deckName); return; }
     if (target.classList.contains('edit-deck-btn')) { playSound('click'); const { deckId, deckName } = target.dataset; editDeckName(deckId, deckName); return; }
     if (target.classList.contains('delete-deck-btn')) { playSound('click'); const { deckId, deckName } = target.dataset; deleteDeck(deckId, deckName); return; }
     if (target.classList.contains('delete-word-btn')) { playSound('click'); const { wordId, deckId } = target.dataset; deleteWordFromDeck(wordId, deckId); return; }
     if (target.classList.contains('word-checkbox')) { updateDeckActionButtonsState(); return; }
-    // Learning path actions
     if (target.closest('.start-step-btn')) { playSound('click'); startPathStep(); return; }
     if (target.closest('.reinforce-btn')) { playSound('click'); const resultIndex = parseInt(target.closest('.reinforce-btn').dataset.questionIndex, 10); const result = sessionResults[resultIndex]; requestReinforcement(result.question, result.userAnswer); return; }
-    // Conversation speak again button
     const speakBtn = target.closest('.speak-message-btn');
     if (speakBtn) {
         const textToSpeak = decodeURIComponent(speakBtn.dataset.text);
@@ -2813,14 +2786,17 @@ topicSelect.addEventListener('change', () => {
 filterSkill.addEventListener('change', renderHistoryList);
 filterLevel.addEventListener('change', renderHistoryList);
 
+// SỬA LỖI: Phục hồi và hoàn thiện logic cho nút Play của bài Nghe
 playAudioBtn.addEventListener('click', () => {
-    // This is for the listening quiz, not conversation
     if (audioState === 'playing') {
-        isPausedByUser = true; synth.cancel(); audioState = 'paused';
-        playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden');
+        isPausedByUser = true;
+        synth.cancel();
+        audioState = 'paused';
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
         audioStatus.textContent = "Đã tạm dừng";
-    } else { 
-        // Logic to resume/play audio for listening quiz
+    } else { // 'paused' or 'idle'
+        playListeningAudio(quizData.raw.script);
     }
 });
 
@@ -2886,11 +2862,10 @@ addSoundToListener(backToSetupFromConvFeedback, 'click', () => showView('setup-v
 
 
 // --- Initial App Setup ---
-// SỬA LỖI: Đổi tên hàm để tránh xung đột với hàm initializeApp của Firebase
 function setupApplication() {
     handleQuizTypeChange();
-    loadVoices(); // Tải giọng nói khi khởi động
-    updateSpeechToggleIcon(); // Cập nhật icon loa
+    loadVoices(); 
+    updateSpeechToggleIcon();
 }
 
 function updateSpeechToggleIcon() {
