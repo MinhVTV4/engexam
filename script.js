@@ -32,31 +32,7 @@ try {
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
 }
 
-// REFACTOR: Sử dụng hằng số cho ID các màn hình để tránh lỗi gõ nhầm
-const VIEW_IDS = {
-    AUTH: 'auth-view',
-    SETUP: 'setup-view',
-    ASSESSMENT_CHOICE: 'assessment-choice-view',
-    DIAGNOSTIC_CONVERSATION: 'diagnostic-conversation-view',
-    CONVERSATION_PRACTICE: 'conversation-practice-view',
-    CONVERSATION_FEEDBACK: 'conversation-feedback-view',
-    LEARNING_PATH: 'learning-path-view',
-    GOAL_SETTING: 'goal-setting-view',
-    LIBRARY: 'library-view',
-    HISTORY: 'history-view',
-    NOTEBOOK: 'notebook-view',
-    DECK_DETAILS: 'deck-details-view',
-    LOADING: 'loading-view',
-    QUIZ: 'quiz-view',
-    WRITING: 'writing-view',
-    RESULT: 'result-view',
-    REVIEW: 'review-view',
-    REINFORCEMENT: 'reinforcement-view',
-    PLACEMENT_RESULT: 'placement-result-view',
-    ERROR: 'error-view'
-};
-
-// DOM Elements (Không thay đổi)
+// DOM Elements
 const appContainer = document.getElementById('appContainer');
 const welcomeMessage = document.getElementById('welcomeMessage'), emailInput = document.getElementById('emailInput'), passwordInput = document.getElementById('passwordInput'), loginButton = document.getElementById('loginButton'), registerButton = document.getElementById('registerButton'), logoutButton = document.getElementById('logoutButton'), authError = document.getElementById('authError'), quizTypeSelect = document.getElementById('quizTypeSelect'), vocabModeContainer = document.getElementById('vocabModeContainer'), vocabModeSelect = document.getElementById('vocabModeSelect'), topicContainer = document.getElementById('topicContainer'), topicSelect = document.getElementById('topicSelect'), levelSelect = document.getElementById('levelSelect'), questionCountContainer = document.getElementById('questionCountContainer'), questionCountSelect = document.getElementById('questionCountSelect'), startQuizButton = document.getElementById('startQuizButton'), showHistoryButton = document.getElementById('showHistoryButton'), showNotebookButton = document.getElementById('showNotebookButton'), showLibraryButton = document.getElementById('showLibraryButton'), libraryList = document.getElementById('libraryList'), backToSetupFromLibrary = document.getElementById('backToSetupFromLibrary'), historyDashboard = document.getElementById('historyDashboard'), recommendationsContainer = document.getElementById('recommendationsContainer'), historyFilters = document.getElementById('historyFilters'), filterSkill = document.getElementById('filterSkill'), filterLevel = document.getElementById('filterLevel'), historyList = document.getElementById('historyList'), backToSetupFromHistory = document.getElementById('backToSetupFromHistory'), loadingTopic = document.getElementById('loadingTopic'), loadingTitle = document.getElementById('loadingTitle'), loadingMessage = document.getElementById('loadingMessage'), quizTitle = document.getElementById('quizTitle'), quizSubtitle = document.getElementById('quizSubtitle'), progress = document.getElementById('progress'), scoreEl = document.getElementById('score'), progressBar = document.getElementById('progressBar'), audioPlayerContainer = document.getElementById('audioPlayerContainer'), playAudioBtn = document.getElementById('playAudioBtn'), playIcon = document.getElementById('playIcon'), pauseIcon = document.getElementById('pauseIcon'), audioStatus = document.getElementById('audioStatus'), transcriptControls = document.getElementById('transcriptControls'), showTranscriptBtn = document.getElementById('showTranscriptBtn'), transcriptContainer = document.getElementById('transcriptContainer'), passageContainer = document.getElementById('passageContainer'), passageText = document.getElementById('passageText'), questionContainer = document.getElementById('questionContainer'), questionText = document.getElementById('questionText'), translateQuestionBtn = document.getElementById('translateQuestionBtn'), optionsContainer = document.getElementById('optionsContainer'), feedbackContainer = document.getElementById('feedbackContainer'), nextQuestionButton = document.getElementById('nextQuestionButton'), playAgainButton = document.getElementById('playAgainButton'), reviewAnswersButton = document.getElementById('reviewAnswersButton'), reviewList = document.getElementById('reviewList'), backToPreviousViewButton = document.getElementById('backToPreviousViewButton'), viewHistoryFromResultButton = document.getElementById('viewHistoryFromResultButton'), finalScore = document.getElementById('finalScore'), resultMessage = document.getElementById('resultMessage'), resultScoreContainer = document.getElementById('resultScoreContainer'), errorMessage = document.getElementById('errorMessage'), backToSetupButton = document.getElementById('backToSetupButton'), streakCount = document.getElementById('streakCount'), translationModal = document.getElementById('translationModal'), translationResult = document.getElementById('translationResult'), closeTranslationModal = document.getElementById('closeTranslationModal'), confirmModal = document.getElementById('confirmModal'), confirmTitle = document.getElementById('confirmTitle'), confirmMessage = document.getElementById('confirmMessage'), confirmCancelBtn = document.getElementById('confirmCancelBtn'), confirmOkBtn = document.getElementById('confirmOkBtn'), vocabModal = document.getElementById('vocabModal'), vocabList = document.getElementById('vocabList'), closeVocabModal = document.getElementById('closeVocabModal');
 const backToSetupFromWriting = document.getElementById('backToSetupFromWriting'), writingTopic = document.getElementById('writingTopic'), writingInput = document.getElementById('writingInput'), wordCount = document.getElementById('wordCount'), getFeedbackButton = document.getElementById('getFeedbackButton'), writingFeedbackContainer = document.getElementById('writingFeedbackContainer');
@@ -96,17 +72,8 @@ const wordInfoSpeakBtn = document.getElementById('wordInfoSpeakBtn');
 const wordInfoContent = document.getElementById('wordInfoContent');
 const saveWordFromInfoBtn = document.getElementById('saveWordFromInfoBtn');
 const closeWordInfoModal = document.getElementById('closeWordInfoModal');
-const backToSetupFromConvFeedback = document.getElementById('backToSetupFromConvFeedback');
-const conversationFeedbackContainer = document.getElementById('conversationFeedbackContainer');
-const toggleDiagnosticSpeechBtn = document.getElementById('toggleDiagnosticSpeechBtn');
-const togglePracticeSpeechBtn = document.getElementById('togglePracticeSpeechBtn');
-const conversationPracticeTopic = document.getElementById('conversationPracticeTopic');
-const endConversationPracticeButton = document.getElementById('endConversationPracticeButton');
-const conversationPracticeLog = document.getElementById('conversationPracticeLog');
-const conversationPracticeInputArea = document.getElementById('conversationPracticeInputArea');
-const micPracticeButton = document.getElementById('micPracticeButton');
-const conversationPracticeTextInput = document.getElementById('conversationPracticeTextInput');
-const sendPracticeTextButton = document.getElementById('sendPracticeTextButton');
+
+// NOTEBOOK V6 DOM Elements
 const backToSetupFromNotebook = document.getElementById('backToSetupFromNotebook');
 const createNewDeckButton = document.getElementById('createNewDeckButton');
 const deckList = document.getElementById('deckList');
@@ -139,35 +106,39 @@ const moveWordOkBtn = document.getElementById('moveWordOkBtn');
 const reviewOptionsModal = document.getElementById('reviewOptionsModal');
 const closeReviewOptionsModal = document.getElementById('closeReviewOptionsModal');
 
+// CONVERSATION PRACTICE (V8) DOM Elements
+const conversationPracticeTopic = document.getElementById('conversationPracticeTopic');
+const endConversationPracticeButton = document.getElementById('endConversationPracticeButton');
+const conversationPracticeLog = document.getElementById('conversationPracticeLog');
+const conversationPracticeInputArea = document.getElementById('conversationPracticeInputArea');
+const micPracticeButton = document.getElementById('micPracticeButton');
+const conversationPracticeTextInput = document.getElementById('conversationPracticeTextInput');
+const sendPracticeTextButton = document.getElementById('sendPracticeTextButton');
+const backToSetupFromConvFeedback = document.getElementById('backToSetupFromConvFeedback');
+const conversationFeedbackContainer = document.getElementById('conversationFeedbackContainer');
+const toggleDiagnosticSpeechBtn = document.getElementById('toggleDiagnosticSpeechBtn');
+const togglePracticeSpeechBtn = document.getElementById('togglePracticeSpeechBtn');
 
-// REFACTOR: Gom nhóm các biến trạng thái vào một đối tượng để dễ quản lý
-const appState = {
-    quiz: {
-        data: {},
-        currentQuestionIndex: 0,
-        score: 0,
-        sessionResults: [],
-        type: 'standard', // 'standard', 'placement', 'path', 'diagnostic', 'conversation'
-        reviewCameFrom: VIEW_IDS.RESULT,
-        matchingState: { selectedWordEl: null, correctPairs: 0 },
-        autoAdvanceTimer: null,
-    },
-    user: {
-        path: null,
-        historyCache: [],
-        notebookWords: new Set(),
-        currentDeckId: null,
-    },
-    conversation: {
-        diagnostic: {},
-        practice: {},
-        recognition: null,
-    },
-    ui: {
-        isSpeechEnabled: true,
-        chartInstance: null,
-    }
-};
+
+// App State
+let quizData = {};
+let currentQuestionIndex = 0;
+let score = 0;
+let userHistoryCache = []; 
+let sessionResults = [];
+let reviewCameFrom = 'result-view'; 
+let matchingState = { selectedWordEl: null, correctPairs: 0 };
+let autoAdvanceTimer = null;
+let currentQuizType = 'standard'; // 'standard', 'placement', 'path', 'diagnostic', 'conversation'
+let currentUserPath = null;
+let diagnosticConversationState = {};
+let conversationPracticeState = {}; 
+let recognition;
+let chartInstance;
+let notebookWords = new Set();
+let currentDeckId = null; 
+let isInitialAuthComplete = false;
+let isSpeechEnabled = true; // State for toggling speech
 
 // --- Audio State & Setup ---
 const synth = window.speechSynthesis;
@@ -176,6 +147,7 @@ let lastSpokenCharIndex = 0;
 let isPausedByUser = false;
 let soundEffects;
 
+// Speaker Icon SVGs
 const speakerOnIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
 const speakerOffIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`;
 
@@ -205,19 +177,14 @@ function playSound(type) {
 // --- Core Functions ---
 function showView(viewId) { 
     if (synth.speaking) { synth.cancel(); }
-    clearTimeout(appState.quiz.autoAdvanceTimer);
+    clearTimeout(autoAdvanceTimer);
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); 
-    const viewElement = document.getElementById(viewId);
-    if (viewElement) {
-        viewElement.classList.add('active'); 
-    } else {
-        console.error(`View with ID "${viewId}" not found.`);
-    }
+    document.getElementById(viewId).classList.add('active'); 
 }
 
 function showError(msg) { 
     errorMessage.textContent = msg; 
-    showView(VIEW_IDS.ERROR); 
+    showView('error-view'); 
 }
 
 // --- Improved Modal Functions ---
@@ -278,13 +245,13 @@ async function fetchUserNotebook() {
     if (!auth.currentUser) return;
     const notebookRef = collection(db, "users", auth.currentUser.uid, "vocabulary");
     const querySnapshot = await getDocs(query(notebookRef));
-    appState.user.notebookWords = new Set(querySnapshot.docs.map(doc => doc.data().word.toLowerCase()));
+    notebookWords = new Set(querySnapshot.docs.map(doc => doc.data().word.toLowerCase()));
 }
 
 onAuthStateChanged(auth, async (user) => {
     if (user) { 
         const currentView = document.querySelector('.view.active');
-        const isAuthScreen = currentView && currentView.id === VIEW_IDS.AUTH;
+        const isAuthScreen = currentView && currentView.id === 'auth-view';
 
         welcomeMessage.textContent = `Chào mừng, ${user.email}!`; 
         await updateUserStreak(user.uid); 
@@ -292,13 +259,13 @@ onAuthStateChanged(auth, async (user) => {
         await fetchUserNotebook();
         
         if (isAuthScreen) {
-            showView(VIEW_IDS.SETUP); 
+            showView('setup-view'); 
         }
     } else { 
-        showView(VIEW_IDS.AUTH); 
-        appState.user.historyCache = []; 
-        appState.user.path = null;
-        appState.user.notebookWords.clear();
+        showView('auth-view'); 
+        userHistoryCache = []; 
+        currentUserPath = null;
+        notebookWords.clear();
     }
 });
 
@@ -306,11 +273,11 @@ async function checkUserLearningPath(userId) {
     const pathRef = doc(db, "learningPaths", userId);
     const docSnap = await getDoc(pathRef);
     if (docSnap.exists() && docSnap.data().status === 'active') {
-        appState.user.path = { id: docSnap.id, ...docSnap.data() };
+        currentUserPath = { id: docSnap.id, ...docSnap.data() };
         placementTestContainer.classList.add('hidden');
         learningPathCTA.classList.remove('hidden');
     } else {
-        appState.user.path = null;
+        currentUserPath = null;
         placementTestContainer.classList.remove('hidden');
         learningPathCTA.classList.add('hidden');
     }
@@ -418,7 +385,7 @@ function showTranslationModal(textPromise) {
     textPromise.then(translatedText => { translationResult.innerHTML = `<p class="text-lg">${translatedText}</p>`; });
 }
 
-// --- PROMPTS (Không thay đổi) ---
+// --- PROMPTS ---
 function getWordInfoPrompt(word) { return `Provide a simple Vietnamese definition, a simple English example sentence, and the IPA transcription for the word "${word}". You MUST wrap your entire response in a 'json' markdown code block. Example: \`\`\`json { "definition": "một thiết bị điện tử để lưu trữ và xử lý dữ liệu", "example": "I use my computer for work and study.", "ipa": "/kəmˈpjuːtər/" } \`\`\``; }
 function getPlacementTestPrompt() { return `You are an expert English assessment creator. Create a comprehensive placement test with exactly 12 multiple-choice questions to determine a user's CEFR level (from A2 to B2). The test MUST include: - 4 Grammar questions, with increasing difficulty (A2, B1, B1, B2). - 4 Vocabulary questions, with increasing difficulty (A2, B1, B1, B2) covering common topics. - 1 short reading passage (around 80-100 words, at a B1 level). - 4 multiple-choice questions based on the reading passage. For each question, provide one correct answer and three plausible distractors. The "answer" field MUST be the full text of the correct option. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object with a "passage" key (which can be an empty string for non-reading questions) and a "questions" key containing an array of 12 question objects. Example structure: \`\`\`json { "passage": "...", "questions": [ { "question": "...", "options": ["..."], "answer": "..." }, { "question": "...", "options": ["..."], "answer": "..." } ] } \`\`\``; }
 function getPlacementAnalysisPrompt(results) { const userAnswers = results.map(r => ({ question: r.question.question, userAnswer: r.userAnswer, correctAnswer: r.question.answer })); return `An English learner has just completed a placement test. Here are their results: ${JSON.stringify(userAnswers)}. Based on these answers, please perform the following tasks: 1.  Determine the user's approximate CEFR level (e.g., "A2", "B1", "B2"). 2.  Write a short, friendly analysis (2-3 sentences in Vietnamese) of their performance, highlighting one strength and one area for improvement. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object with "level" and "analysis" keys. Example: \`\`\`json { "level": "B1", "analysis": "Bạn có nền tảng ngữ pháp khá tốt và xử lý tốt các câu hỏi ở trình độ A2. Tuy nhiên, bạn cần cải thiện thêm vốn từ vựng ở các chủ đề chuyên sâu hơn để đạt trình độ B2." } \`\`\``; }
@@ -435,9 +402,13 @@ function getGrammarPrompt(level, topic, count) { return `You are an expert Engli
 function getListeningPrompt(level, topic, count) { return `You are an expert English teacher. Create a listening comprehension quiz. 1. Generate one short monologue or dialogue (50-80 words). The topic is "${topic}" and for a ${level} CEFR level learner. 2. Based on the script, generate ${count} multiple-choice questions. 3. For each question, provide one correct answer, three plausible distractors, and a brief, helpful explanation IN VIETNAMESE. The "answer" field MUST be the full text of the correct option. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object: \`\`\`json\n{ "script": "...", "questions": [ { "question": "...", "options": ["..."], "answer": "...", "explanation": "..." } ] }\n\`\`\``; }
 function getWritingTopicPrompt(level, topic) { return `You are an English teacher. Generate a single, engaging writing topic for an English learner at the ${level} CEFR level. The topic should be related to "${topic}". The topic should be a question or a statement to respond to. Provide only the topic text, without any extra labels or quotation marks. Example: "Describe your favorite kind of technology and explain why you like it."`; }
 function getWritingFeedbackPrompt(level, topic, userText) { return `You are an expert English writing evaluator. A student at the ${level} CEFR level has written the following text about the topic "${topic}". Student's text: """ ${userText} """ Please provide feedback in Vietnamese. You MUST wrap your entire response in a 'json' markdown code block. The JSON object must have the following structure: 1. "overallFeedback": A general comment in Vietnamese (2-3 sentences) on the text's content, clarity, and effort. 2. "score": An integer score from 0 to 100. 3. "correctedTextHTML": The student's original text with corrections. Use "<del>" tags for deleted parts and "<ins>" tags for added parts. This should be a single HTML string. 4. "detailedFeedback": An array of objects, where each object explains a specific mistake. Each object should have: "type", "mistake", "correction", "explanation". Example of the required JSON output: \`\`\`json\n{ "overallFeedback": "...", "score": 75, "correctedTextHTML": "...", "detailedFeedback": [ { "type": "Grammar", "mistake": "...", "correction": "...", "explanation": "..." } ] }\n\`\`\``; }
-function getReinforcementPrompt(question, userAnswer) { const level = appState.quiz.data.level; const questionText = question.question || question.clue; const options = question.options ? JSON.stringify(question.options) : 'N/A'; return `You are an expert and friendly English tutor AI. A student has made a mistake on a quiz. Your task is to provide a comprehensive, easy-to-understand lesson to help them master the concept they got wrong. The student is at the ${level} CEFR level. Quiz question: - Question: "${questionText}" - Options (if any): ${options} - Correct Answer: "${question.answer}" - Student's Incorrect Answer: "${userAnswer}" Please generate a lesson in Vietnamese. You MUST wrap your entire response in a 'json' markdown code block. The JSON object must have the following structure: 1. "conceptTitle": A short, clear title for the lesson. 2. "mistakeAnalysis": A friendly explanation of why the student's answer was incorrect. 3. "conceptExplanation": A detailed but easy-to-understand explanation of the core concept. 4. "examples": An array of at least 3 distinct objects, each with an "en" and "vi" field. 5. "practiceTip": A final, encouraging tip. Example of the required JSON output: \`\`\`json\n{ "conceptTitle": "...", "mistakeAnalysis": "...", "conceptExplanation": "...", "examples": [ { "en": "...", "vi": "..." } ], "practiceTip": "..." }\n\`\`\``; }
+function getReinforcementPrompt(question, userAnswer) { const level = quizData.level; const questionText = question.question || question.clue; const options = question.options ? JSON.stringify(question.options) : 'N/A'; return `You are an expert and friendly English tutor AI. A student has made a mistake on a quiz. Your task is to provide a comprehensive, easy-to-understand lesson to help them master the concept they got wrong. The student is at the ${level} CEFR level. Quiz question: - Question: "${questionText}" - Options (if any): ${options} - Correct Answer: "${question.answer}" - Student's Incorrect Answer: "${userAnswer}" Please generate a lesson in Vietnamese. You MUST wrap your entire response in a 'json' markdown code block. The JSON object must have the following structure: 1. "conceptTitle": A short, clear title for the lesson. 2. "mistakeAnalysis": A friendly explanation of why the student's answer was incorrect. 3. "conceptExplanation": A detailed but easy-to-understand explanation of the core concept. 4. "examples": An array of at least 3 distinct objects, each with an "en" and "vi" field. 5. "practiceTip": A final, encouraging tip. Example of the required JSON output: \`\`\`json\n{ "conceptTitle": "...", "mistakeAnalysis": "...", "conceptExplanation": "...", "examples": [ { "en": "...", "vi": "..." } ], "practiceTip": "..." }\n\`\`\``; }
+
+// MỚI: Prompts để tạo bài ôn tập từ danh sách từ vựng
 function getReviewMultipleChoicePrompt(wordListJson) { return `You are an expert English teacher. Based on the following list of vocabulary words (in JSON format), generate one multiple-choice question for each word. The user wants to be tested on the meaning of the word. For each question: - The question should be "What is the meaning of the word '${"word"}'?". - The "options" array must contain the correct Vietnamese meaning and three plausible but incorrect Vietnamese meanings (distractors). - The "answer" field MUST be the full text of the correct Vietnamese meaning. - Provide a brief, helpful "explanation" in Vietnamese. Word list: ${wordListJson} You MUST wrap your entire response in a 'json' markdown code block. The structure must be a valid JSON array of question objects.`; }
 function getReviewFillInTheBlankPrompt(wordListJson) { return `You are an expert English teacher. Based on the following list of vocabulary words and their example sentences (in JSON format), generate one fill-in-the-blank question for each word. For each question: - Use the provided example sentence. Replace the target word with "___". - The "question" field must be this modified sentence. - The "answer" field must be the original English word. - Provide a brief, helpful "explanation" in Vietnamese. Word list: ${wordListJson} You MUST wrap your entire response in a 'json' markdown code block. The structure must be a valid JSON array of question objects.`; }
+
+// MỚI (V7): Prompts cho Hội thoại Thực hành
 function getConversationPracticeStartPrompt(topic) { return `You are a friendly, encouraging English conversation partner. Start a conversation with the user about the topic: "${topic}". Ask a simple, open-ended question to begin. Keep your opening short and natural.`; }
 function getConversationPracticeFollowUpPrompt(history, topic) { return `You are a friendly, encouraging English conversation partner. The topic of conversation is "${topic}". Here is the conversation history so far:\n${history}\n\nBased on the user's last message, ask a natural, engaging follow-up question to keep the conversation going. Do not repeat questions. Keep your responses concise and friendly. If the conversation has had more than 8 turns, you can gently guide it to a close by saying something like "This has been a great chat! Whenever you're ready, you can click the button to get my feedback."`; }
 function getConversationPracticeFeedbackPrompt(history, topic, level) { return `You are an expert English teacher. A student at the ${level} CEFR level has just completed a practice conversation with you about "${topic}". Your goal is to provide constructive, encouraging feedback. Here is the full transcript:\n${history}\n\nPlease provide your feedback in Vietnamese. You MUST wrap your entire response in a 'json' markdown code block. The JSON object must have the following structure: 1. "overallFeedback": A friendly, encouraging summary (2-3 sentences) of their performance, highlighting what they did well. 2. "strengths": An array of 1-2 strings, listing positive points (e.g., "Sử dụng tốt từ vựng về du lịch", "Phát âm rõ ràng các âm cuối"). 3. "areasForImprovement": An array of objects, each highlighting a specific area for improvement. Each object should have: "type" (e.g., "Ngữ pháp", "Lựa chọn từ", "Lưu loát"), "original" (the user's original phrase), "suggestion" (a better way to phrase it), and "explanation" (a short, clear explanation in Vietnamese). Focus on the most important points, don't overwhelm the user. Example of the required JSON output: \`\`\`json { "overallFeedback": "...", "strengths": ["..."], "areasForImprovement": [ { "type": "Ngữ pháp", "original": "I go to the cinema yesterday.", "suggestion": "I went to the cinema yesterday.", "explanation": "Khi nói về quá khứ, chúng ta dùng thì quá khứ đơn 'went' thay vì 'go'." } ] } \`\`\``; }
@@ -453,7 +424,7 @@ function renderTextWithClickableWords(container, text) {
             const span = document.createElement('span');
             span.textContent = word;
             span.className = 'lookup-word';
-            if (appState.user.notebookWords.has(cleanedWord)) {
+            if (notebookWords.has(cleanedWord)) {
                 span.classList.add('saved-word-highlight');
             }
             container.appendChild(span);
@@ -549,7 +520,7 @@ async function quickStartPractice() {
 }
 
 async function startWritingPractice(settings = null) {
-    appState.quiz.type = settings ? 'path' : 'standard';
+    currentQuizType = settings ? 'path' : 'standard';
     const level = settings ? settings.level : levelSelect.value;
     let topic;
     if (settings) {
@@ -566,9 +537,9 @@ async function startWritingPractice(settings = null) {
         }
     }
     
-    appState.quiz.data = { topic, level, quizType: 'writing' };
+    quizData = { topic, level, quizType: 'writing' };
 
-    showView(VIEW_IDS.LOADING);
+    showView('loading-view');
     loadingTitle.textContent = 'Đang tạo chủ đề...';
     loadingMessage.textContent = `AI đang nghĩ ra một chủ đề Luyện Viết thú vị về "${topic}" cho bạn.`;
     try {
@@ -585,7 +556,7 @@ async function startWritingPractice(settings = null) {
         getFeedbackButton.disabled = false;
         writingInput.disabled = false;
         
-        showView(VIEW_IDS.WRITING);
+        showView('writing-view');
     } catch (error) {
         showError(`Không thể tạo chủ đề luyện viết. Lỗi: ${error.message}.`);
     }
@@ -609,8 +580,7 @@ async function getWritingFeedback() {
     writingInput.disabled = true;
 
     try {
-        const { level, topic } = appState.quiz.data;
-        const prompt = getWritingFeedbackPrompt(level, topic, userText);
+        const prompt = getWritingFeedbackPrompt(quizData.level, quizData.topic, userText);
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const feedbackData = extractAndParseJson(response.text());
@@ -623,7 +593,7 @@ async function getWritingFeedback() {
         writingFeedbackContainer.classList.remove('hidden');
 
         if (auth.currentUser) {
-            if (appState.quiz.type === 'path') {
+            if (currentQuizType === 'path') {
                 await handlePathStepCompletion(feedbackData.score, 100);
             } else {
                  await saveWritingResult(userText, feedbackData);
@@ -681,14 +651,12 @@ function getFeedbackColor(type) {
 
 // --- Learning Path & Quiz Lifecycle ---
 async function startPlacementTest() {
-    appState.quiz.type = 'placement';
-    appState.quiz.sessionResults = []; 
-    const quizConfig = { topic: "Placement Test", level: "Mixed", quizType: "placement", count: 12 };
-    appState.quiz.data = quizConfig;
-
+    currentQuizType = 'placement';
+    sessionResults = []; 
+    quizData = { topic: "Placement Test", level: "Mixed", quizType: "placement", count: 12 };
     loadingTitle.textContent = 'Đang tạo bài kiểm tra...';
     loadingMessage.textContent = `AI đang chuẩn bị Bài kiểm tra trình độ cho bạn.`;
-    showView(VIEW_IDS.LOADING);
+    showView('loading-view');
     try {
         const prompt = getPlacementTestPrompt();
         const result = await model.generateContent(prompt);
@@ -696,20 +664,19 @@ async function startPlacementTest() {
         const parsedData = extractAndParseJson(response.text());
         if (!parsedData || !parsedData.questions) throw new Error("AI did not return a valid placement test.");
         
-        appState.quiz.data.raw = parsedData;
-        appState.quiz.currentQuestionIndex = 0; 
-        appState.quiz.score = 0;
+        quizData.raw = parsedData;
+        currentQuestionIndex = 0; score = 0;
         
         renderQuiz();
-        showView(VIEW_IDS.QUIZ);
+        showView('quiz-view');
     } catch (error) {
         showError(`Không thể tạo bài kiểm tra trình độ. Lỗi: ${error.message}.`);
     }
 }
 
 async function startQuiz(settings = null) {
-    if (!settings) appState.quiz.type = 'standard';
-    appState.quiz.sessionResults = [];
+    if (!settings) currentQuizType = 'standard';
+    sessionResults = [];
     const quizType = settings ? settings.type : quizTypeSelect.value;
     const vocabMode = vocabModeSelect.value;
     const level = settings ? settings.level : levelSelect.value;
@@ -735,19 +702,20 @@ async function startQuiz(settings = null) {
         }
     }
     
-    appState.quiz.data = { topic, level, quizType, vocabMode, count };
+    quizData = { topic, level, quizType, vocabMode, count };
     loadingTitle.textContent = 'Đang tạo bài kiểm tra...';
     loadingMessage.textContent = `AI đang chuẩn bị các câu hỏi về chủ đề ${topic} cho bạn. Vui lòng chờ!`;
-    showView(VIEW_IDS.LOADING);
+    showView('loading-view');
     try {
         let prompt;
-        if (quizType === 'vocabulary' || quizType === 'review') {
+        if (quizType === 'vocabulary' || quizType === 'review') { // 'review' uses vocabulary prompts
             switch(vocabMode) {
                 case 'fill_in_the_blank': prompt = getFillInTheBlankPrompt(level, topic, count); break;
                 case 'word_formation': prompt = getWordFormationPrompt(level, topic, count); break;
                 case 'word_scramble': prompt = getWordScramblePrompt(level, topic, count); break;
                 case 'matching': prompt = getMatchingPrompt(level, topic, count); break; 
                 case 'flashcard': prompt = getFlashcardPrompt(level, topic, count); break;
+                case 'multiple_choice':
                 default: prompt = getVocabularyPrompt(level, topic, count);
             }
         }
@@ -760,51 +728,49 @@ async function startQuiz(settings = null) {
         const parsedData = extractAndParseJson(response.text());
         if (!parsedData) throw new Error("AI did not return valid JSON data.");
         
-        appState.quiz.data.raw = parsedData;
-        appState.quiz.currentQuestionIndex = 0; 
-        appState.quiz.score = 0;
+        quizData.raw = parsedData;
+        currentQuestionIndex = 0; score = 0;
         
-        if (appState.quiz.type === 'standard' && !settings?.isRetry) { saveQuizToLibrary(appState.quiz.data); }
+        if (currentQuizType === 'standard' && !settings?.isRetry) { saveQuizToLibrary(quizData); }
 
         renderQuiz();
-        showView(VIEW_IDS.QUIZ);
+        showView('quiz-view');
     } catch (error) {
         showError(`Không thể tạo bài kiểm tra. Lỗi: ${error.message}.`);
     }
 }
 
 function renderQuiz() {
-    const { data, type, currentQuestionIndex } = appState.quiz;
-    const isReading = data.quizType === 'reading' || (type === 'placement' && data.raw.passage);
-    const isListening = data.quizType === 'listening';
-    const questions = data.raw.questions || (Array.isArray(data.raw) ? data.raw : []);
+    const isReading = quizData.quizType === 'reading' || (currentQuizType === 'placement' && quizData.raw.passage);
+    const isListening = quizData.quizType === 'listening';
+    const questions = quizData.raw.questions || (Array.isArray(quizData.raw) ? quizData.raw : []);
     const total = questions.length;
     
-    if (type === 'placement') {
+    if (currentQuizType === 'placement') {
         quizTitle.textContent = "Bài kiểm tra trình độ";
         quizSubtitle.textContent = "Hoàn thành tất cả câu hỏi để xác định năng lực của bạn.";
-    } else if (type === 'path') {
-        const step = appState.user.path.path[appState.user.path.currentStep];
+    } else if (currentQuizType === 'path') {
+        const step = currentUserPath.path[currentUserPath.currentStep];
         quizTitle.textContent = `Lộ trình: ${step.description}`;
-        quizSubtitle.textContent = `Bước ${appState.user.path.currentStep + 1} / ${appState.user.path.path.length}`;
+        quizSubtitle.textContent = `Bước ${currentUserPath.currentStep + 1} / ${currentUserPath.path.length}`;
     }
     else {
         const typeMap = { vocabulary: 'Luyện tập Từ vựng', reading: 'Luyện tập Đọc hiểu', grammar: 'Luyện tập Ngữ pháp', listening: 'Luyện tập Nghe hiểu', writing: 'Luyện Viết' };
         const modeMap = { multiple_choice: 'Trắc nghiệm', fill_in_the_blank: 'Điền từ', word_formation: 'Dạng của từ', word_scramble: 'Sắp xếp chữ cái', matching: 'Nối từ', flashcard: 'Flashcards' };
-        quizTitle.textContent = typeMap[data.quizType];
+        quizTitle.textContent = typeMap[quizData.quizType];
         let subtitleParts = [];
-        if (data.quizType === 'vocabulary') { subtitleParts.push(modeMap[data.vocabMode]); }
-        if (data.quizType !== 'grammar') { subtitleParts.push(`Chủ đề: ${data.topic}`); }
-        subtitleParts.push(`Trình độ: ${data.level.toUpperCase()}`);
+        if (quizData.quizType === 'vocabulary') { subtitleParts.push(modeMap[quizData.vocabMode]); }
+        if (quizData.quizType !== 'grammar') { subtitleParts.push(`Chủ đề: ${quizData.topic}`); }
+        subtitleParts.push(`Trình độ: ${quizData.level.toUpperCase()}`);
         quizSubtitle.textContent = subtitleParts.join(' - ');
     }
     
-    scoreEl.style.display = data.vocabMode === 'flashcard' ? 'none' : 'block';
+    scoreEl.style.display = quizData.vocabMode === 'flashcard' ? 'none' : 'block';
     progress.textContent = `Câu ${currentQuestionIndex + 1} / ${total}`;
     progressBar.style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
     
     passageContainer.classList.toggle('hidden', !isReading);
-    if (isReading) renderTextWithClickableWords(passageText, data.raw.passage);
+    if (isReading) renderTextWithClickableWords(passageText, quizData.raw.passage);
     audioPlayerContainer.classList.toggle('hidden', !isListening);
     transcriptControls.classList.toggle('hidden', !isListening);
     transcriptContainer.classList.add('hidden'); 
@@ -814,17 +780,15 @@ function renderQuiz() {
 
 function renderQuestion() {
     feedbackContainer.innerHTML = '';
-    feedbackContainer.className = 'mt-6 p-4 rounded-lg min-h-[100px] feedback-container'; // Tối ưu: Thêm class để CSS target
+    feedbackContainer.className = 'mt-6 p-4 rounded-lg min-h-[100px]';
     nextQuestionButton.classList.add('hidden');
-
-    const { data, currentQuestionIndex } = appState.quiz;
-    const questions = data.raw.questions || (Array.isArray(data.raw) ? data.raw : []);
+    const questions = quizData.raw.questions || (Array.isArray(quizData.raw) ? quizData.raw : []);
     const currentQuestion = questions[currentQuestionIndex];
     
     optionsContainer.innerHTML = '';
     translateQuestionBtn.style.display = 'inline-block';
 
-    const questionType = currentQuestion.type || data.vocabMode || 'multiple_choice';
+    const questionType = currentQuestion.type || quizData.vocabMode || 'multiple_choice';
 
     switch (questionType) {
         case 'flashcard':
@@ -884,7 +848,7 @@ function renderQuestion() {
             }
             const shuffledMeanings = [...pairs].sort(() => Math.random() - 0.5);
             
-            appState.quiz.matchingState.correctPairs = 0;
+            matchingState.correctPairs = 0;
 
             pairs.forEach(pair => {
                 const wordEl = document.createElement('div');
@@ -960,10 +924,10 @@ function renderQuestion() {
                 const button = document.createElement('button');
                 button.className = "option-btn w-full text-left p-4 border-2 border-slate-300 rounded-lg hover:bg-slate-100 hover:border-sky-400 transition text-lg flex items-center justify-between";
                 const optionText = document.createElement('span');
-                renderTextWithClickableWords(optionText, option);
+                renderTextWithClickableWords(optionText, option); // Make words in options clickable
                 button.appendChild(optionText);
                 button.onclick = () => handleAnswer(option);
-                if (data.quizType === 'listening') { button.disabled = true; button.classList.add('opacity-50', 'cursor-not-allowed'); }
+                if (quizData.quizType === 'listening') { button.disabled = true; button.classList.add('opacity-50', 'cursor-not-allowed'); }
                 optionsContainer.appendChild(button);
             });
             break;
@@ -995,7 +959,6 @@ function renderQuestion() {
 
 function handleMatchingSelection(selectedEl, type) {
     if (selectedEl.classList.contains('correct')) return;
-    const { matchingState } = appState.quiz;
 
     if (type === 'word') {
         if (matchingState.selectedWordEl) {
@@ -1015,7 +978,7 @@ function handleMatchingSelection(selectedEl, type) {
             matchingState.selectedWordEl = null;
             matchingState.correctPairs++;
             
-            const totalPairs = appState.quiz.data.raw[appState.quiz.currentQuestionIndex].pairs.length;
+            const totalPairs = quizData.raw[currentQuestionIndex].pairs.length;
             if (matchingState.correctPairs === totalPairs) {
                 handleAnswer(true);
             }
@@ -1036,27 +999,26 @@ function handleMatchingSelection(selectedEl, type) {
 
 
 function handleAnswer(selectedOption, isFlashcard = false) {
-    clearTimeout(appState.quiz.autoAdvanceTimer);
+    clearTimeout(autoAdvanceTimer);
     if (isFlashcard) {
         if (autoAdvanceCheckbox.checked) {
-            appState.quiz.autoAdvanceTimer = setTimeout(moveToNextQuestion, 3000);
+            autoAdvanceTimer = setTimeout(moveToNextQuestion, 3000);
         } else {
             nextQuestionButton.classList.remove('hidden');
         }
         return;
     }
 
-    const { data, currentQuestionIndex } = appState.quiz;
-    const questions = data.raw.questions || (Array.isArray(data.raw) ? data.raw : []);
+    const questions = quizData.raw.questions || (Array.isArray(quizData.raw) ? quizData.raw : []);
     const currentQuestion = questions[currentQuestionIndex];
-    const questionType = currentQuestion.type || data.vocabMode || 'multiple_choice';
+    const questionType = currentQuestion.type || quizData.vocabMode || 'multiple_choice';
     
     let isCorrect;
 
     if (questionType === 'matching') {
         isCorrect = true; 
-        appState.quiz.score++;
-        feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-800 feedback-container active';
+        score++;
+        feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-800';
         feedbackContainer.innerHTML = `<b class="font-bold">Chính xác!</b><p>Bạn đã nối đúng tất cả các cặp.</p>`;
     } else if (questionType === 'multiple_choice') {
         isCorrect = selectedOption === currentQuestion.answer;
@@ -1076,20 +1038,20 @@ function handleAnswer(selectedOption, isFlashcard = false) {
     if (questionType !== 'matching') {
          if (isCorrect) {
             playSound('correct');
-            appState.quiz.score++;
-            feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-800 feedback-container active';
+            score++;
+            feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-green-100 text-green-800';
             let feedbackHTML = `<b class="font-bold">Chính xác!</b>`;
             if(currentQuestion.explanation) { feedbackHTML += `<p>${currentQuestion.explanation}</p>`; }
             feedbackContainer.innerHTML = feedbackHTML;
         } else {
             playSound('incorrect');
-            feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-800 feedback-container active';
+            feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-800';
             const displayAnswer = `Đáp án đúng là <b>"${currentQuestion.answer}"</b>.`;
             let feedbackHTML = `<b class="font-bold">Chưa đúng.</b> ${displayAnswer}`;
             if(currentQuestion.explanation) { feedbackHTML += `<p>${currentQuestion.explanation}</p>`; }
             feedbackContainer.innerHTML = feedbackHTML;
 
-            if (appState.quiz.type === 'standard') {
+            if (currentQuizType === 'standard') {
                 const reinforceBtn = document.createElement('button');
                 reinforceBtn.innerHTML = `
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
@@ -1102,15 +1064,15 @@ function handleAnswer(selectedOption, isFlashcard = false) {
         }
     }
     
-    scoreEl.textContent = `Điểm: ${appState.quiz.score}`;
+    scoreEl.textContent = `Điểm: ${score}`;
     
     if (autoAdvanceCheckbox.checked) {
-        appState.quiz.autoAdvanceTimer = setTimeout(moveToNextQuestion, 3000);
+        autoAdvanceTimer = setTimeout(moveToNextQuestion, 3000);
     } else {
         nextQuestionButton.classList.remove('hidden');
     }
 
-    appState.quiz.sessionResults.push({
+    sessionResults.push({
         question: currentQuestion,
         userAnswer: selectedOption,
         isCorrect: isCorrect
@@ -1169,17 +1131,16 @@ function displayReinforcement(data) {
 
 
 function moveToNextQuestion() {
-    appState.quiz.currentQuestionIndex++;
-    const { data, currentQuestionIndex } = appState.quiz;
-    const questions = data.raw.questions || (Array.isArray(data.raw) ? data.raw : []);
+    currentQuestionIndex++;
+    const questions = quizData.raw.questions || (Array.isArray(quizData.raw) ? quizData.raw : []);
     const total = questions.length;
     if (currentQuestionIndex < total) {
         renderQuiz();
     } else {
-        if (appState.quiz.type === 'placement' || appState.quiz.type === 'diagnostic') {
+        if (currentQuizType === 'placement' || currentQuizType === 'diagnostic') {
             showPlacementResult();
-        } else if (appState.quiz.type === 'path') {
-            handlePathStepCompletion(appState.quiz.score, total);
+        } else if (currentQuizType === 'path') {
+            handlePathStepCompletion(score, total);
         } else {
             showResult();
         }
@@ -1188,25 +1149,24 @@ function moveToNextQuestion() {
 
 async function showResult() {
     playAgainButton.textContent = "Làm lại";
-    playAgainButton.onclick = () => { playSound('click'); showView(VIEW_IDS.SETUP); };
+    playAgainButton.onclick = () => { playSound('click'); showView('setup-view'); };
     reviewAnswersButton.textContent = "Xem lại bài làm";
-    reviewAnswersButton.onclick = () => { playSound('click'); showReviewPage(appState.quiz.sessionResults, appState.quiz.data.raw, VIEW_IDS.RESULT); };
+    reviewAnswersButton.onclick = () => { playSound('click'); showReviewPage(sessionResults, quizData.raw, 'result-view'); };
     reviewAnswersButton.classList.remove('hidden');
     viewHistoryFromResultButton.classList.remove('hidden');
 
-    const { data, score, sessionResults } = appState.quiz;
-    const questions = data.raw.questions || (Array.isArray(data.raw) ? data.raw : []);
+    const questions = quizData.raw.questions || (Array.isArray(quizData.raw) ? quizData.raw : []);
     const total = questions.length;
     
-    resultScoreContainer.style.display = data.vocabMode === 'flashcard' ? 'none' : 'block';
-    reviewAnswersButton.style.display = data.vocabMode === 'flashcard' ? 'none' : 'block';
+    resultScoreContainer.style.display = quizData.vocabMode === 'flashcard' ? 'none' : 'block';
+    reviewAnswersButton.style.display = quizData.vocabMode === 'flashcard' ? 'none' : 'block';
     
-    if (data.isReview) {
+    if (quizData.isReview) {
         resultMessage.textContent = `Tuyệt vời! Bạn đã ôn tập xong ${total} từ.`;
         playAgainButton.textContent = "Về lại bộ thẻ";
         playAgainButton.onclick = async () => {
-            const deckDoc = await getDoc(doc(db, "users", auth.currentUser.uid, "notebookDecks", appState.user.currentDeckId));
-            showDeckDetails(appState.user.currentDeckId, deckDoc.data().name);
+            const deckDoc = await getDoc(doc(db, "users", auth.currentUser.uid, "notebookDecks", currentDeckId));
+            showDeckDetails(currentDeckId, deckDoc.data().name);
         };
     } else {
         if (auth.currentUser) {
@@ -1214,35 +1174,34 @@ async function showResult() {
             try {
                 const resultsCollectionRef = collection(db, "users", auth.currentUser.uid, "quizResults");
                 const newResult = { 
-                    level: data.level, type: data.quizType, score: score, totalQuestions: total, 
+                    level: quizData.level, type: quizData.quizType, score: score, totalQuestions: total, 
                     createdAt: serverTimestamp(), results: sessionResults, 
-                    context: { passage: data.raw.passage || null, script: data.raw.script || null }
+                    context: { passage: quizData.raw.passage || null, script: quizData.raw.script || null }
                 };
-                if (data.quizType !== 'grammar') { newResult.topic = data.topic; }
-                if (data.quizType === 'vocabulary') { newResult.vocabMode = data.vocabMode; }
+                if (quizData.quizType !== 'grammar') { newResult.topic = quizData.topic; }
+                if (quizData.quizType === 'vocabulary') { newResult.vocabMode = quizData.vocabMode; }
                 await addDoc(resultsCollectionRef, newResult);
-                appState.user.historyCache = []; 
+                userHistoryCache = []; 
             } catch (e) { console.error("Lỗi khi lưu kết quả: ", e); }
         }
         finalScore.textContent = `${score} / ${total}`;
-        const percentage = total > 0 ? (score / total) * 100 : 0;
+        const percentage = (score / total) * 100;
         if (percentage === 100) resultMessage.textContent = "Tuyệt vời! Bạn đã trả lời đúng tất cả!";
         else if (percentage >= 70) resultMessage.textContent = "Làm tốt lắm! Kiến thức của bạn rất ổn.";
         else if (percentage >= 40) resultMessage.textContent = "Khá lắm! Tiếp tục luyện tập nhé.";
         else resultMessage.textContent = "Đừng nản lòng! Mỗi lần luyện tập là một bước tiến.";
     }
-    showView(VIEW_IDS.RESULT);
+    showView('result-view');
 }
 
 async function showPlacementResult() {
-    showView(VIEW_IDS.PLACEMENT_RESULT);
+    showView('placement-result-view');
     placementResultContainer.innerHTML = '<div class="spinner mx-auto"></div>';
     diagnosticChartContainer.classList.add('hidden');
     try {
         let analysisData;
-        const { type, score, sessionResults } = appState.quiz;
-        if(type === 'diagnostic') {
-            const prompt = getDiagnosticAnalysisPrompt(appState.conversation.diagnostic.history);
+        if(currentQuizType === 'diagnostic') {
+            const prompt = getDiagnosticAnalysisPrompt(diagnosticConversationState.history);
             const result = await model.generateContent(prompt);
             const response = await result.response;
             analysisData = extractAndParseJson(response.text());
@@ -1280,7 +1239,7 @@ async function showPlacementResult() {
                     score: score,
                     totalQuestions: sessionResults.length,
                     completedAt: serverTimestamp(),
-                    type: type
+                    type: currentQuizType
                 },
                 status: 'pending_generation'
             }, { merge: true });
@@ -1292,8 +1251,8 @@ async function showPlacementResult() {
 }
 
 function renderDiagnosticChart(skillsProfile) {
-    if (appState.ui.chartInstance) {
-        appState.ui.chartInstance.destroy();
+    if (chartInstance) {
+        chartInstance.destroy();
     }
     const ctx = diagnosticChartCanvas.getContext('2d');
     const data = {
@@ -1320,19 +1279,34 @@ function renderDiagnosticChart(skillsProfile) {
         type: 'radar',
         data: data,
         options: {
-            elements: { line: { borderWidth: 3 } },
-            scales: {
-                r: {
-                    angleLines: { display: false },
-                    suggestedMin: 0,
-                    suggestedMax: 100,
-                    pointLabels: { font: { size: 14, family: "'Be Vietnam Pro', sans-serif" } }
+            elements: {
+                line: {
+                    borderWidth: 3
                 }
             },
-            plugins: { legend: { display: false } }
+            scales: {
+                r: {
+                    angleLines: {
+                        display: false
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    pointLabels: {
+                        font: {
+                            size: 14,
+                            family: "'Be Vietnam Pro', sans-serif"
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
         }
     };
-    appState.ui.chartInstance = new Chart(ctx, config);
+    chartInstance = new Chart(ctx, config);
 }
 
 // --- Learning Path Functions ---
@@ -1353,7 +1327,7 @@ function showGoalSetting() {
         goalOptionsContainer.appendChild(button);
     });
 
-    showView(VIEW_IDS.GOAL_SETTING);
+    showView('goal-setting-view');
 }
 
 async function handleGoalSelection(goal) {
@@ -1361,7 +1335,7 @@ async function handleGoalSelection(goal) {
 
     loadingTitle.textContent = 'AI đang xây dựng lộ trình...';
     loadingMessage.textContent = `Dựa trên kết quả và mục tiêu "${goal}" của bạn, AI đang tạo ra một kế hoạch học tập độc nhất.`;
-    showView(VIEW_IDS.LOADING);
+    showView('loading-view');
 
     try {
         const pathRef = doc(db, "learningPaths", auth.currentUser.uid);
@@ -1398,12 +1372,12 @@ async function handleGoalSelection(goal) {
 }
 
 function showLearningPath() {
-    if (!appState.user.path) {
+    if (!currentUserPath) {
         showError("Không tìm thấy lộ trình học tập.");
         return;
     }
-    renderLearningPath(appState.user.path.path, appState.user.path.currentStep);
-    showView(VIEW_IDS.LEARNING_PATH);
+    renderLearningPath(currentUserPath.path, currentUserPath.currentStep);
+    showView('learning-path-view');
 }
 
 function renderLearningPath(path, currentStep) {
@@ -1434,15 +1408,15 @@ function renderLearningPath(path, currentStep) {
 }
 
 async function startPathStep() {
-    if (!appState.user.path) return showError("Không tìm thấy lộ trình học tập.");
+    if (!currentUserPath) return showError("Không tìm thấy lộ trình học tập.");
     
-    const step = appState.user.path.path[appState.user.path.currentStep];
+    const step = currentUserPath.path[currentUserPath.currentStep];
     if (!step) return showError("Lỗi: Không tìm thấy bước học hiện tại.");
 
-    appState.quiz.type = 'path';
-    appState.quiz.sessionResults = [];
-    appState.quiz.score = 0;
-    appState.quiz.currentQuestionIndex = 0;
+    currentQuizType = 'path';
+    sessionResults = [];
+    score = 0;
+    currentQuestionIndex = 0;
 
     const settings = {
         type: step.type,
@@ -1460,20 +1434,21 @@ async function startPathStep() {
 }
 
 async function handlePathStepCompletion(achievedScore, totalScore) {
-    if (!auth.currentUser || !appState.user.path) return;
+    if (!auth.currentUser || !currentUserPath) return;
 
-    const step = appState.user.path.path[appState.user.path.currentStep];
+    const step = currentUserPath.path[currentUserPath.currentStep];
     const percentage = totalScore > 0 ? (achievedScore / totalScore) * 100 : 0;
-    const passingThreshold = 70;
+    const passingThreshold = 70; // 70% to pass
 
-    showView(VIEW_IDS.RESULT);
+    showView('result-view');
 
     if (percentage >= passingThreshold) {
-        const newStep = appState.user.path.currentStep + 1;
+        // Passed the step
+        const newStep = currentUserPath.currentStep + 1;
         const pathRef = doc(db, "learningPaths", auth.currentUser.uid);
         try {
             await updateDoc(pathRef, { currentStep: newStep });
-            appState.user.path.currentStep = newStep;
+            currentUserPath.currentStep = newStep;
 
             resultScoreContainer.innerHTML = `<p class="text-2xl font-semibold mb-2 text-teal-700">Hoàn thành bước!</p><p class="text-6xl font-bold text-teal-600">🎉</p>`;
             finalScore.textContent = `${achievedScore} / ${totalScore}`;
@@ -1484,10 +1459,10 @@ async function handlePathStepCompletion(achievedScore, totalScore) {
 
             if (step.type === 'writing') {
                 reviewAnswersButton.textContent = "Xem lại Phản hồi";
-                reviewAnswersButton.onclick = () => showView(VIEW_IDS.WRITING);
+                reviewAnswersButton.onclick = () => showView('writing-view');
             } else {
                 reviewAnswersButton.textContent = "Xem lại Bài làm";
-                reviewAnswersButton.onclick = () => showReviewPage(appState.quiz.sessionResults, appState.quiz.data.raw, VIEW_IDS.RESULT);
+                reviewAnswersButton.onclick = () => showReviewPage(sessionResults, quizData.raw, 'result-view');
             }
             reviewAnswersButton.classList.remove('hidden');
             viewHistoryFromResultButton.classList.add('hidden');
@@ -1496,6 +1471,7 @@ async function handlePathStepCompletion(achievedScore, totalScore) {
             showError("Không thể cập nhật tiến độ lộ trình. Lỗi: " + error.message);
         }
     } else {
+        // Failed the step
         resultScoreContainer.innerHTML = `<p class="text-2xl font-semibold mb-2 text-orange-700">Chưa đạt!</p><p class="text-6xl font-bold text-orange-600">💪</p>`;
         finalScore.textContent = `${achievedScore} / ${totalScore}`;
         resultMessage.textContent = `Bạn cần đạt ít nhất ${passingThreshold}% để qua bước này. Hãy cố gắng ôn tập và làm lại nhé!`;
@@ -1505,7 +1481,7 @@ async function handlePathStepCompletion(achievedScore, totalScore) {
 
         if (step.type === 'writing') {
             reviewAnswersButton.textContent = "Xem lại Phản hồi";
-            reviewAnswersButton.onclick = () => showView(VIEW_IDS.WRITING);
+            reviewAnswersButton.onclick = () => showView('writing-view');
         } else {
             reviewAnswersButton.textContent = "Xem lại & Ôn tập";
             reviewAnswersButton.onclick = showReinforcementView;
@@ -1517,7 +1493,7 @@ async function handlePathStepCompletion(achievedScore, totalScore) {
 
 function showReinforcementView() {
     reinforcementReviewList.innerHTML = '';
-    const incorrectAnswers = appState.quiz.sessionResults.filter(r => !r.isCorrect);
+    const incorrectAnswers = sessionResults.filter(r => !r.isCorrect);
 
     if (incorrectAnswers.length === 0) {
         reinforcementReviewList.innerHTML = '<p class="text-center text-slate-500">Tuyệt vời, bạn không làm sai câu nào trong lần thử này!</p>';
@@ -1530,21 +1506,21 @@ function showReinforcementView() {
                 <p class="font-semibold text-slate-800">${index + 1}. ${q.question || q.clue}</p>
                 <p class="text-sm text-slate-700 mt-2">Câu trả lời của bạn: <b class="text-red-700 font-semibold">${result.userAnswer || '(Chưa trả lời)'}</b></p>
                 <p class="text-sm text-slate-700 mt-1">Đáp án đúng: <b class="text-green-700 font-semibold">${q.answer}</b></p>
-                <button class="reinforce-btn mt-3 bg-fuchsia-500 hover:bg-fuchsia-600 text-white text-xs font-bold py-1 px-3 rounded-full" data-question-index="${appState.quiz.sessionResults.indexOf(result)}">
+                <button class="reinforce-btn mt-3 bg-fuchsia-500 hover:bg-fuchsia-600 text-white text-xs font-bold py-1 px-3 rounded-full" data-question-index="${sessionResults.indexOf(result)}">
                     Bài học từ AI
                 </button>
             `;
             reinforcementReviewList.appendChild(item);
         });
     }
-    showView(VIEW_IDS.REINFORCEMENT);
+    showView('reinforcement-view');
 }
 
 // --- Review & History Functions ---
 function showReviewPage(results, context, cameFromView) {
     reviewList.innerHTML = '';
-    appState.quiz.reviewCameFrom = cameFromView; 
-    showView(VIEW_IDS.REVIEW);
+    reviewCameFrom = cameFromView; 
+    showView('review-view');
 
     if (context?.passage) {
         const passageEl = document.createElement('div');
@@ -1591,8 +1567,8 @@ async function reviewHistoricQuiz(resultId) {
         if (docSnap.exists()) {
             const data = docSnap.data();
             if (data.type === 'writing') {
-                appState.quiz.data = { topic: data.topic, level: data.level, quizType: 'writing' };
-                showView(VIEW_IDS.WRITING);
+                quizData = { topic: data.topic, level: data.level, quizType: 'writing' };
+                showView('writing-view');
                 writingTopic.textContent = data.topic;
                 writingInput.value = data.originalText;
                 writingInput.disabled = true;
@@ -1600,7 +1576,7 @@ async function reviewHistoricQuiz(resultId) {
                 displayWritingFeedback(data.feedback);
                 writingFeedbackContainer.classList.remove('hidden');
             } else {
-                showReviewPage(data.results, data.context, VIEW_IDS.HISTORY);
+                showReviewPage(data.results, data.context, 'history-view');
             }
         } else {
             showError("Không tìm thấy dữ liệu bài làm này.");
@@ -1613,7 +1589,7 @@ async function reviewHistoricQuiz(resultId) {
 
 async function showHistory() {
     if (!auth.currentUser) { showError("Bạn cần đăng nhập để xem lịch sử."); return; }
-    showView(VIEW_IDS.HISTORY);
+    showView('history-view');
     historyList.innerHTML = '<div class="spinner mx-auto"></div>';
     historyDashboard.innerHTML = '';
     recommendationsContainer.innerHTML = '';
@@ -1621,15 +1597,15 @@ async function showHistory() {
         const historyCollectionRef = collection(db, "users", auth.currentUser.uid, "quizResults");
         const q = query(historyCollectionRef);
         const querySnapshot = await getDocs(q);
-        appState.user.historyCache = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        userHistoryCache = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
         
-        if (appState.user.historyCache.length === 0) { 
+        if (userHistoryCache.length === 0) { 
             historyList.innerHTML = '<p class="text-center text-slate-500">Bạn chưa có lịch sử làm bài nào.</p>'; 
             historyDashboard.innerHTML = '';
             recommendationsContainer.innerHTML = '';
             return; 
         }
-        const stats = calculateStats(appState.user.historyCache);
+        const stats = calculateStats(userHistoryCache);
         displayHistoryStats(stats);
         generateRecommendations(stats);
         renderHistoryList();
@@ -1642,7 +1618,7 @@ async function showHistory() {
 function renderHistoryList() {
     const skill = filterSkill.value;
     const level = filterLevel.value;
-    const filteredResults = appState.user.historyCache.filter(res => (skill === 'all' || res.type === skill) && (level === 'all' || res.level === level));
+    const filteredResults = userHistoryCache.filter(res => (skill === 'all' || res.type === skill) && (level === 'all' || res.level === level));
     if (filteredResults.length === 0) { historyList.innerHTML = '<p class="text-center text-slate-500">Không tìm thấy kết quả phù hợp.</p>'; return; }
     historyList.innerHTML = '';
     filteredResults.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).forEach(data => {
@@ -1755,7 +1731,7 @@ async function generateRecommendations(stats) {
             recommendations.push({ text: `Bạn làm rất tốt <b>${typeMap[bestSkill.key]}</b>! Thử sức ở trình độ <b>${nextLevel}</b> nhé?`, settings: { type: bestSkill.key, level: nextLevel, topic: 'General' } });
         }
     }
-    if (recommendations.length === 0 && appState.user.historyCache.length > 0) {
+    if (recommendations.length === 0 && userHistoryCache.length > 0) {
         recommendations.push({ text: "Bạn đang làm rất tốt! Hãy tiếp tục phát huy nhé!", settings: null });
     }
     recommendationsContainer.innerHTML = recommendations.length > 0 ? `<h3 class="text-lg font-bold text-slate-700 mb-2">Gợi ý cho bạn</h3>` : '';
@@ -1783,7 +1759,7 @@ async function getDecks() {
 
 async function showNotebook() {
     if (!auth.currentUser) { showError("Bạn cần đăng nhập để xem sổ tay."); return; }
-    showView(VIEW_IDS.NOTEBOOK);
+    showView('notebook-view');
     deckList.innerHTML = '<div class="spinner mx-auto"></div>';
     try {
         const decks = await getDecks();
@@ -1875,8 +1851,8 @@ async function deleteDeck(deckId, deckName) {
 
 async function showDeckDetails(deckId, deckName) {
     if (!auth.currentUser) return;
-    appState.user.currentDeckId = deckId;
-    showView(VIEW_IDS.DECK_DETAILS);
+    currentDeckId = deckId;
+    showView('deck-details-view');
     deckNameTitle.textContent = deckName;
     deckWordList.innerHTML = '<div class="spinner mx-auto"></div>';
     quickLookupResult.innerHTML = '';
@@ -1894,7 +1870,24 @@ async function showDeckDetails(deckId, deckName) {
             deckWordList.innerHTML = '<p class="text-center text-slate-500">Chưa có từ nào trong bộ thẻ này. Hãy dùng box "Tra cứu & Thêm" ở trên nhé!</p>';
         } else {
             words.sort((a, b) => (b.addedAt?.seconds || 0) - (a.addedAt?.seconds || 0))
-                 .forEach(word => addWordToDeckUI(word)); // TỐI ƯU: Gọi hàm mới
+                 .forEach(word => {
+                    const wordEl = document.createElement('div');
+                    wordEl.className = 'p-3 bg-slate-50 rounded-lg flex items-center justify-between';
+                    wordEl.dataset.wordData = JSON.stringify({
+                        word: word.word, ipa: word.ipa, meaning: word.definition, example: word.example
+                    });
+                    wordEl.innerHTML = `
+                        <div class="flex items-center">
+                            <input type="checkbox" class="word-checkbox h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mr-4" data-word-id="${word.id}">
+                            <div>
+                                <p class="font-semibold text-slate-800 capitalize">${word.word}</p>
+                                <p class="text-sm text-slate-600">${word.definition}</p>
+                            </div>
+                        </div>
+                        <button class="delete-word-btn text-red-400 hover:text-red-600 text-xl" data-word-id="${word.id}" data-deck-id="${deckId}" title="Xóa từ này">🗑️</button>
+                    `;
+                    deckWordList.appendChild(wordEl);
+                 });
         }
         updateDeckActionButtonsState();
     } catch (error) {
@@ -1902,30 +1895,6 @@ async function showDeckDetails(deckId, deckName) {
         deckWordList.innerHTML = '<p class="text-center text-red-500">Không thể tải danh sách từ.</p>';
     }
 }
-
-// TỐI ƯU: Tách logic render một từ ra hàm riêng để tái sử dụng
-function addWordToDeckUI(word) {
-    const wordEl = document.createElement('div');
-    wordEl.className = 'p-3 bg-slate-50 rounded-lg flex items-center justify-between';
-    wordEl.dataset.wordData = JSON.stringify({
-        word: word.word, ipa: word.ipa, meaning: word.definition, example: word.example
-    });
-    wordEl.id = `word-${word.id}`; // Thêm ID để có thể xóa
-
-    wordEl.innerHTML = `
-        <div class="flex items-center">
-            <input type="checkbox" class="word-checkbox h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mr-4" data-word-id="${word.id}">
-            <div>
-                <p class="font-semibold text-slate-800 capitalize">${word.word}</p>
-                <p class="text-sm text-slate-600">${word.definition}</p>
-            </div>
-        </div>
-        <button class="delete-word-btn text-red-400 hover:text-red-600 text-xl" data-word-id="${word.id}" data-deck-id="${word.deckId}" title="Xóa từ này">🗑️</button>
-    `;
-    // Thêm vào đầu danh sách
-    deckWordList.prepend(wordEl);
-}
-
 
 function updateDeckActionButtonsState() {
     const selectedCheckboxes = deckWordList.querySelectorAll('.word-checkbox:checked');
@@ -1958,7 +1927,7 @@ async function startDeckReview(reviewType) {
     hideModal(reviewOptionsModal);
     loadingTitle.textContent = 'Đang tạo bài ôn tập...';
     loadingMessage.textContent = `AI đang chuẩn bị các câu hỏi ôn tập cho bạn.`;
-    showView(VIEW_IDS.LOADING);
+    showView('loading-view');
 
     try {
         let generatedQuestions;
@@ -1989,8 +1958,8 @@ async function startDeckReview(reviewType) {
             throw new Error("AI không thể tạo câu hỏi từ các từ đã chọn.");
         }
 
-        appState.quiz.type = 'standard';
-        appState.quiz.data = {
+        currentQuizType = 'standard';
+        quizData = {
             topic: `Ôn tập: ${deckNameTitle.textContent}`,
             level: 'Mixed',
             quizType: 'vocabulary',
@@ -2000,11 +1969,11 @@ async function startDeckReview(reviewType) {
             isReview: true,
             isRetry: true
         };
-        appState.quiz.sessionResults = [];
-        appState.quiz.currentQuestionIndex = 0;
-        appState.quiz.score = 0;
+        sessionResults = [];
+        currentQuestionIndex = 0;
+        score = 0;
         renderQuiz();
-        showView(VIEW_IDS.QUIZ);
+        showView('quiz-view');
 
     } catch (error) {
         console.error("Error generating review quiz:", error);
@@ -2025,7 +1994,7 @@ async function showMoveWordsModal() {
     const allDecks = await getDecks();
     moveDeckSelect.innerHTML = '';
     allDecks.forEach(deck => {
-        if (deck.id !== appState.user.currentDeckId) {
+        if (deck.id !== currentDeckId) {
             const option = document.createElement('option');
             option.value = deck.id;
             option.textContent = deck.name;
@@ -2047,7 +2016,7 @@ async function moveSelectedWords() {
 
     const selectedCheckboxes = deckWordList.querySelectorAll('.word-checkbox:checked');
     const wordIdsToMove = Array.from(selectedCheckboxes).map(cb => cb.dataset.wordId);
-    const sourceDeckId = appState.user.currentDeckId;
+    const sourceDeckId = currentDeckId;
 
     hideModal(moveWordModal);
     deckWordList.innerHTML = '<div class="spinner mx-auto"></div>';
@@ -2081,7 +2050,6 @@ async function moveSelectedWords() {
 
 async function handleQuickLookupAndSave() {
     const word = quickLookupInput.value.trim().toLowerCase();
-    const { currentDeckId } = appState.user;
     if (!word || !currentDeckId) return;
 
     quickLookupResult.innerHTML = '<div class="spinner mx-auto"></div>';
@@ -2096,21 +2064,17 @@ async function handleQuickLookupAndSave() {
             throw new Error("AI did not return valid information.");
         }
         
-        const newWordData = await saveWordToNotebook(word, wordInfo, currentDeckId);
+        quickLookupResult.innerHTML = `
+            <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p>Đã thêm: <b class="capitalize">${word}</b> - ${wordInfo.definition}</p>
+            </div>
+        `;
+        quickLookupInput.value = '';
+
+        await saveWordToNotebook(word, wordInfo, currentDeckId);
         
-        if (newWordData) {
-            // TỐI ƯU: Chỉ thêm từ mới vào UI, không tải lại toàn bộ
-            addWordToDeckUI(newWordData);
-            quickLookupResult.innerHTML = `
-                <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p>Đã thêm: <b class="capitalize">${word}</b> - ${wordInfo.definition}</p>
-                </div>
-            `;
-            quickLookupInput.value = '';
-        } else {
-            // Từ đã tồn tại, hiển thị thông báo
-            quickLookupResult.innerHTML = `<p class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">Từ <b class="capitalize">${word}</b> đã có trong bộ thẻ này.</p>`;
-        }
+        const deckDoc = await getDoc(doc(db, "users", auth.currentUser.uid, "notebookDecks", currentDeckId));
+        showDeckDetails(currentDeckId, deckDoc.data().name);
 
     } catch (error) {
         console.error("Quick lookup error:", error);
@@ -2119,7 +2083,7 @@ async function handleQuickLookupAndSave() {
 }
 
 async function saveWordToNotebook(word, wordInfo, deckId) {
-    if (!auth.currentUser || !deckId) return null;
+    if (!auth.currentUser || !deckId) return;
     const cleanedWord = word.toLowerCase();
 
     const wordQuery = query(collection(db, "users", auth.currentUser.uid, "vocabulary"), where("word", "==", cleanedWord), where("deckId", "==", deckId));
@@ -2130,7 +2094,7 @@ async function saveWordToNotebook(word, wordInfo, deckId) {
             saveWordFromInfoBtn.textContent = 'Từ này đã có trong bộ!';
             setTimeout(() => hideModal(wordInfoModal), 2000);
         }
-        return null; // TỐI ƯU: Trả về null nếu từ đã tồn tại
+        return;
     }
 
     const vocabRef = collection(db, "users", auth.currentUser.uid, "vocabulary");
@@ -2139,33 +2103,30 @@ async function saveWordToNotebook(word, wordInfo, deckId) {
     try {
         const batch = writeBatch(db);
         const newWordRef = doc(vocabRef);
-        const newWordData = {
-            id: newWordRef.id,
+        batch.set(newWordRef, {
             word: cleanedWord, 
             definition: wordInfo.definition || 'Chưa có giải thích.',
             example: wordInfo.example || 'Chưa có câu ví dụ.',
             ipa: wordInfo.ipa || '',
             deckId: deckId,
             addedAt: serverTimestamp()
-        };
-        batch.set(newWordRef, newWordData);
+        });
         batch.update(deckRef, { wordCount: increment(1) });
         await batch.commit();
-        appState.user.notebookWords.add(cleanedWord);
+        notebookWords.add(cleanedWord);
         
         if(wordInfoModal.classList.contains('active')) {
             saveWordFromInfoBtn.textContent = 'Đã lưu thành công!';
             saveWordFromInfoBtn.disabled = true;
             setTimeout(() => hideModal(wordInfoModal), 1500);
         }
-        return newWordData; // TỐI ƯU: Trả về dữ liệu từ mới để cập nhật UI
+
     } catch (error) { 
         console.error("Error saving word:", error); 
         if(wordInfoModal.classList.contains('active')) {
             saveWordFromInfoBtn.textContent = 'Lỗi! Thử lại';
             saveWordFromInfoBtn.disabled = false;
         }
-        return null;
     }
 }
 
@@ -2174,24 +2135,14 @@ async function deleteWordFromDeck(wordId, deckId) {
     try {
         const batch = writeBatch(db);
         const wordRef = doc(db, "users", auth.currentUser.uid, "vocabulary", wordId);
-        const wordDoc = await getDoc(wordRef);
-        const wordText = wordDoc.data()?.word;
-
         batch.delete(wordRef);
         const deckRef = doc(db, "users", auth.currentUser.uid, "notebookDecks", deckId);
         batch.update(deckRef, { wordCount: increment(-1) });
         await batch.commit();
         
-        // TỐI ƯU: Chỉ xóa element khỏi UI
-        const wordElement = document.getElementById(`word-${wordId}`);
-        if (wordElement) {
-            wordElement.remove();
-        }
-        
-        // Cập nhật lại Set từ vựng
-        if (wordText) {
-            appState.user.notebookWords.delete(wordText);
-        }
+        const deckDoc = await getDoc(deckRef);
+        await showDeckDetails(deckId, deckDoc.data().name);
+        await fetchUserNotebook();
 
     } catch (error) {
         console.error("Error deleting word:", error);
@@ -2257,6 +2208,117 @@ function setupAudioPlayer() {
     audioStatus.textContent = "Nhấn để nghe"; playAudioBtn.disabled = false;
 }
 
+// --- Library & History Saving ---
+async function saveWritingResult(originalText, feedback) {
+    if (!auth.currentUser) return;
+    const resultsCollectionRef = collection(db, "users", auth.currentUser.uid, "quizResults");
+    const newResult = {
+        level: quizData.level,
+        type: 'writing',
+        topic: writingTopic.textContent,
+        originalText: originalText,
+        feedback: feedback,
+        createdAt: serverTimestamp()
+    };
+    try {
+        await addDoc(resultsCollectionRef, newResult);
+        userHistoryCache = []; // Invalidate cache
+    } catch (error) {
+        console.error("Lỗi khi lưu kết quả luyện viết: ", error);
+    }
+}
+
+async function saveQuizToLibrary(quizDataToSave) {
+    if (!auth.currentUser) return;
+    const libraryRef = collection(db, "quizLibrary");
+    const extractVocabulary = (questions) => {
+        const vocabulary = [];
+        if (!Array.isArray(questions)) return vocabulary;
+        questions.forEach(q => {
+            if (q.type === 'matching' && Array.isArray(q.pairs)) { q.pairs.forEach(pair => vocabulary.push({ word: pair.word, meaning: pair.meaning, ipa: '' })); } 
+            else if (q.type === 'flashcard' && q.word) { vocabulary.push({ word: q.word, meaning: q.meaning, ipa: q.ipa || '' }); } 
+            else if (q.answer) { vocabulary.push({ word: q.answer, meaning: q.explanation || q.clue || 'Xem giải thích trong bài.', ipa: q.ipa || '' }); }
+        });
+        return vocabulary;
+    };
+    try {
+        const quizContent = quizDataToSave.raw;
+        const relatedVocabulary = extractVocabulary(Array.isArray(quizContent) ? quizContent : (quizContent?.questions || []));
+        const dataToSave = {
+            creatorId: auth.currentUser.uid, level: quizDataToSave.level, quizType: quizDataToSave.quizType,
+            count: quizDataToSave.count, quizContent: quizContent || {}, createdAt: serverTimestamp(), relatedVocabulary: relatedVocabulary
+        };
+        if (quizDataToSave.quizType !== 'grammar') { dataToSave.topic = quizDataToSave.topic; }
+        if (quizDataToSave.quizType === 'vocabulary') { dataToSave.vocabMode = quizDataToSave.vocabMode; }
+        await addDoc(libraryRef, dataToSave);
+    } catch (error) { console.error("Error saving quiz to library:", error); }
+}
+
+async function showLibrary() {
+    if (!auth.currentUser) { showError("Bạn cần đăng nhập để xem thư viện."); return; }
+    showView('library-view');
+    libraryList.innerHTML = '<div class="spinner mx-auto"></div>';
+    const libraryRef = collection(db, "quizLibrary");
+    try {
+        const querySnapshot = await getDocs(query(libraryRef));
+        const quizzes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderLibraryList(quizzes);
+    } catch (error) { console.error("Error fetching quiz library:", error); libraryList.innerHTML = '<p class="text-center text-red-500">Không thể tải thư viện.</p>'; }
+}
+
+function renderLibraryList(quizzes) {
+    if (quizzes.length === 0) { libraryList.innerHTML = '<p class="text-center text-slate-500">Thư viện của bạn còn trống.</p>'; return; }
+    libraryList.innerHTML = '';
+    quizzes.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).forEach(quiz => {
+        const date = quiz.createdAt ? new Date(quiz.createdAt.seconds * 1000).toLocaleDateString('vi-VN') : 'N/A';
+        const typeText = quiz.quizType === 'reading' ? 'Đọc hiểu' : (quiz.quizType === 'grammar' ? 'Ngữ pháp' : (quiz.quizType === 'listening' ? 'Nghe hiểu' : 'Từ vựng'));
+        const item = document.createElement('div');
+        item.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200';
+        item.innerHTML = `<p class="font-bold text-base text-slate-800 capitalize">${quiz.topic || 'Ngữ pháp tổng hợp'} <span class="text-sm font-normal text-amber-600">(${typeText})</span></p><div class="text-xs text-slate-500 mt-1"><span>Trình độ: ${quiz.level.toUpperCase()}</span> | <span>${quiz.count || (quiz.quizContent?.questions?.length || quiz.quizContent?.length)} câu</span> | <span>Ngày tạo: ${date}</span></div><div class="flex justify-end items-center space-x-2 mt-2 pt-2 border-t border-slate-200"><button class="view-vocab-btn bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-1 px-3 rounded-full" data-quiz-id="${quiz.id}">Xem từ vựng</button><button class="retry-library-btn bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold py-1 px-3 rounded-full" data-quiz-id="${quiz.id}">Làm lại</button></div>`;
+        libraryList.appendChild(item);
+    });
+    document.querySelectorAll('.retry-library-btn').forEach(button => { button.addEventListener('click', (e) => retrySavedQuiz(e.target.dataset.quizId)); });
+    document.querySelectorAll('.view-vocab-btn').forEach(button => { button.addEventListener('click', (e) => showRelatedVocabulary(e.target.dataset.quizId)); });
+}
+
+async function retrySavedQuiz(quizId) {
+    const docRef = doc(db, "quizLibrary", quizId);
+    try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const savedQuiz = docSnap.data();
+            currentQuizType = 'standard';
+            quizData = {
+                topic: savedQuiz.topic, level: savedQuiz.level, quizType: savedQuiz.quizType,
+                vocabMode: savedQuiz.vocabMode, count: savedQuiz.count, raw: savedQuiz.quizContent, isRetry: true
+            };
+            sessionResults = []; currentQuestionIndex = 0; score = 0;
+            renderQuiz(); showView('quiz-view');
+        }
+    } catch (error) { showError("Không thể tải lại bài tập này."); }
+}
+
+async function showRelatedVocabulary(quizId) {
+    const docRef = doc(db, "quizLibrary", quizId);
+    try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const vocabData = docSnap.data().relatedVocabulary;
+            vocabList.innerHTML = '';
+            if (vocabData && vocabData.length > 0) {
+                vocabData.forEach(v => {
+                    if (!v.word || !v.meaning) return;
+                    const item = document.createElement('div');
+                    item.className = 'p-3 border-b border-slate-200 last:border-b-0';
+                    item.innerHTML = `<div class="flex items-center"><b class="text-lg text-slate-800">${v.word}</b><span class="ml-3 text-slate-500">${v.ipa || ''}</span><button class="speak-btn ml-auto p-1 rounded-full hover:bg-sky-100" onclick="window.playSpeech('${v.word}')"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-600"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button></div><p class="text-slate-600">${v.meaning}</p>`;
+                    vocabList.appendChild(item);
+                });
+            } else { vocabList.innerHTML = '<p class="text-center text-slate-500 p-4">Không có từ vựng nào.</p>'; }
+            showModal(vocabModal);
+        } else { showError("Không tìm thấy bài tập."); }
+    } catch (error) { console.error("Error loading related vocabulary:", error); showError("Không thể tải danh sách từ vựng."); }
+}
+
 // --- Diagnostic & Practice Conversation Functions ---
 function initSpeechRecognition(micBtn, callback) {
     window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2287,12 +2349,23 @@ function initSpeechRecognition(micBtn, callback) {
     return recognitionInstance;
 }
 
+/**
+ * CẬP NHẬT: Hàm này thay thế hàm cũ để thêm nút loa và tự động phát âm thanh.
+ * Thêm một tin nhắn vào nhật ký hội thoại (diagnostic hoặc practice).
+ * @param {HTMLElement} logEl - Element của nhật ký hội thoại.
+ * @param {string} sender - Người gửi ('ai' hoặc 'user').
+ * @param {string} text - Nội dung tin nhắn.
+ */
 function addMessageToLog(logEl, sender, text) {
     const messageDiv = document.createElement('div');
     const senderName = sender === 'ai' ? 'AI' : 'Bạn';
     const senderColor = sender === 'ai' ? 'text-slate-600' : 'text-indigo-600';
     const bubbleColor = sender === 'ai' ? 'bg-slate-200 text-slate-800' : 'bg-indigo-100 text-indigo-800';
+
+    // SVG cho nút loa
     const speakIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500 hover:text-slate-700 pointer-events-none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+
+    // Mã hóa văn bản để xử lý các ký tự đặc biệt trong data attribute
     const encodedText = encodeURIComponent(text);
 
     messageDiv.innerHTML = `
@@ -2306,31 +2379,33 @@ function addMessageToLog(logEl, sender, text) {
     logEl.appendChild(messageDiv);
     logEl.scrollTop = logEl.scrollHeight;
 
-    if (sender === 'ai' && appState.ui.isSpeechEnabled) {
+    // Tự động phát nếu là tin nhắn của AI và tính năng phát âm được bật
+    if (sender === 'ai' && isSpeechEnabled) {
         playSpeech(text);
     }
 }
 
 
 async function startDiagnosticConversation() {
-    appState.quiz.type = 'diagnostic';
-    appState.conversation.diagnostic = { history: [], isFinished: false };
-    showView(VIEW_IDS.DIAGNOSTIC_CONVERSATION);
+    currentQuizType = 'diagnostic';
+    diagnosticConversationState = { history: [], recognition: null, isFinished: false };
+    showView('diagnostic-conversation-view');
     conversationLog.innerHTML = '';
     conversationInputArea.classList.remove('hidden');
     endDiagnosticConversationButton.textContent = "Kết thúc";
     
-    appState.conversation.recognition = initSpeechRecognition(micButton, handleDiagnosticResponse);
+    diagnosticConversationState.recognition = initSpeechRecognition(micButton, handleDiagnosticResponse);
     
     const initialPrompt = "Let's start with a simple question. What did you do last weekend?";
     addMessageToLog(conversationLog, 'ai', initialPrompt);
-    appState.conversation.diagnostic.history.push({ role: 'ai', text: initialPrompt });
+    diagnosticConversationState.history.push({ role: 'ai', text: initialPrompt });
+    // Autoplay is handled by addMessageToLog
 }
 
 async function handleDiagnosticResponse(text, type = 'text') {
-    if (!text.trim() || appState.conversation.diagnostic.isFinished) return;
+    if (!text.trim() || diagnosticConversationState.isFinished) return;
     addMessageToLog(conversationLog, 'user', text);
-    appState.conversation.diagnostic.history.push({ role: 'user', text: text, inputType: type });
+    diagnosticConversationState.history.push({ role: 'user', text: text, inputType: type });
     conversationTextInput.value = '';
     conversationInputArea.classList.add('hidden');
 
@@ -2340,7 +2415,7 @@ async function handleDiagnosticResponse(text, type = 'text') {
     conversationLog.scrollTop = conversationLog.scrollHeight;
 
     try {
-        const historyText = appState.conversation.diagnostic.history.map(h => `${h.role}: ${h.text}`).join('\n');
+        const historyText = diagnosticConversationState.history.map(h => `${h.role}: ${h.text}`).join('\n');
         const prompt = `This is a diagnostic conversation. The user just said: "${text}". The history is:\n${historyText}\n\nAsk a follow-up question to gauge their English level. If the conversation has had more than 6 turns, say "Thank you! I have enough information now. I will now analyze your results."`;
         
         const result = await fastModel.generateContent(prompt);
@@ -2348,10 +2423,11 @@ async function handleDiagnosticResponse(text, type = 'text') {
 
         conversationLog.removeChild(thinkingDiv);
         addMessageToLog(conversationLog, 'ai', aiResponse);
-        appState.conversation.diagnostic.history.push({ role: 'ai', text: aiResponse });
+        diagnosticConversationState.history.push({ role: 'ai', text: aiResponse });
+        // Autoplay is handled by addMessageToLog
 
         if (aiResponse.includes("analyze your results")) {
-            appState.conversation.diagnostic.isFinished = true;
+            diagnosticConversationState.isFinished = true;
             endDiagnosticConversationButton.textContent = "Xem kết quả";
         } else {
             conversationInputArea.classList.remove('hidden');
@@ -2362,25 +2438,26 @@ async function handleDiagnosticResponse(text, type = 'text') {
 }
 
 async function startConversationPractice() {
-    appState.quiz.type = 'conversation';
+    currentQuizType = 'conversation';
     let topic = topicSelect.value === 'custom' ? customTopicInput.value.trim() : topicSelect.value;
     if (!topic) { alert("Vui lòng chọn hoặc nhập chủ đề."); return; }
     
-    appState.conversation.practice = { history: [], topic: topic, level: levelSelect.value };
+    conversationPracticeState = { history: [], recognition: null, topic: topic, level: levelSelect.value };
     
-    showView(VIEW_IDS.CONVERSATION_PRACTICE);
+    showView('conversation-practice-view');
     conversationPracticeLog.innerHTML = '';
     conversationPracticeInputArea.classList.remove('hidden');
     conversationPracticeTopic.textContent = `Chủ đề: ${topic}`;
     
-    appState.conversation.recognition = initSpeechRecognition(micPracticeButton, handleConversationPracticeResponse);
+    conversationPracticeState.recognition = initSpeechRecognition(micPracticeButton, handleConversationPracticeResponse);
 
     try {
         const prompt = getConversationPracticeStartPrompt(topic);
         const result = await fastModel.generateContent(prompt);
         const aiResponse = (await result.response).text();
         addMessageToLog(conversationPracticeLog, 'ai', aiResponse);
-        appState.conversation.practice.history.push({ role: 'ai', text: aiResponse });
+        conversationPracticeState.history.push({ role: 'ai', text: aiResponse });
+        // Autoplay is handled by addMessageToLog
     } catch (error) {
         showError("Không thể bắt đầu cuộc hội thoại. Vui lòng thử lại.");
     }
@@ -2389,7 +2466,7 @@ async function startConversationPractice() {
 async function handleConversationPracticeResponse(text, type = 'text') {
     if (!text.trim()) return;
     addMessageToLog(conversationPracticeLog, 'user', text);
-    appState.conversation.practice.history.push({ role: 'user', text: text, inputType: type });
+    conversationPracticeState.history.push({ role: 'user', text: text, inputType: type });
     conversationPracticeTextInput.value = '';
     conversationPracticeInputArea.classList.add('hidden');
 
@@ -2399,15 +2476,15 @@ async function handleConversationPracticeResponse(text, type = 'text') {
     conversationPracticeLog.scrollTop = conversationPracticeLog.scrollHeight;
 
     try {
-        const { history, topic } = appState.conversation.practice;
-        const historyText = history.map(h => `${h.role}: ${h.text}`).join('\n');
-        const prompt = getConversationPracticeFollowUpPrompt(historyText, topic);
+        const historyText = conversationPracticeState.history.map(h => `${h.role}: ${h.text}`).join('\n');
+        const prompt = getConversationPracticeFollowUpPrompt(historyText, conversationPracticeState.topic);
         const result = await fastModel.generateContent(prompt);
         const aiResponse = (await result.response).text();
         
         conversationPracticeLog.removeChild(thinkingDiv);
         addMessageToLog(conversationPracticeLog, 'ai', aiResponse);
-        history.push({ role: 'ai', text: aiResponse });
+        conversationPracticeState.history.push({ role: 'ai', text: aiResponse });
+        // Autoplay is handled by addMessageToLog
         conversationPracticeInputArea.classList.remove('hidden');
     } catch (error) {
         showError("Lỗi trong quá trình hội thoại.");
@@ -2415,20 +2492,19 @@ async function handleConversationPracticeResponse(text, type = 'text') {
 }
 
 async function endConversationPractice() {
-    if (appState.conversation.recognition) {
-        appState.conversation.recognition.stop();
+    if (conversationPracticeState.recognition) {
+        conversationPracticeState.recognition.stop();
     }
     if (synth.speaking) {
         synth.cancel();
     }
     
-    showView(VIEW_IDS.CONVERSATION_FEEDBACK);
+    showView('conversation-feedback-view');
     conversationFeedbackContainer.innerHTML = '<div class="spinner mx-auto"></div><p class="text-center text-slate-500 mt-4">AI đang chuẩn bị nhận xét cho bạn...</p>';
 
     try {
-        const { history, topic, level } = appState.conversation.practice;
-        const historyText = history.map(h => `${h.role}: ${h.text}`).join('\n');
-        const prompt = getConversationPracticeFeedbackPrompt(historyText, topic, level);
+        const historyText = conversationPracticeState.history.map(h => `${h.role}: ${h.text}`).join('\n');
+        const prompt = getConversationPracticeFeedbackPrompt(historyText, conversationPracticeState.topic, conversationPracticeState.level);
         const result = await model.generateContent(prompt);
         const feedbackData = extractAndParseJson((await result.response).text());
 
@@ -2469,12 +2545,13 @@ function displayConversationFeedback(data) {
     `;
 }
 
+// Function to toggle speech and update icons
 function toggleSpeech() {
-    appState.ui.isSpeechEnabled = !appState.ui.isSpeechEnabled;
-    if (!appState.ui.isSpeechEnabled && synth.speaking) {
+    isSpeechEnabled = !isSpeechEnabled;
+    if (!isSpeechEnabled && synth.speaking) {
         synth.cancel();
     }
-    const icon = appState.ui.isSpeechEnabled ? speakerOnIcon : speakerOffIcon;
+    const icon = isSpeechEnabled ? speakerOnIcon : speakerOffIcon;
     toggleDiagnosticSpeechBtn.innerHTML = icon;
     togglePracticeSpeechBtn.innerHTML = icon;
 }
@@ -2524,12 +2601,12 @@ addSoundToListener(registerButton, 'click', () => handleAuthAction('register'));
 addSoundToListener(logoutButton, 'click', handleLogout);
 addSoundToListener(startQuizButton, 'click', startPractice);
 addSoundToListener(quickStartButton, 'click', quickStartPractice);
-addSoundToListener(backToSetupButton, 'click', () => showView(VIEW_IDS.SETUP));
+addSoundToListener(backToSetupButton, 'click', () => showView('setup-view'));
 addSoundToListener(showHistoryButton, 'click', showHistory);
 addSoundToListener(showLibraryButton, 'click', showLibrary);
-addSoundToListener(backToSetupFromLibrary, 'click', () => showView(VIEW_IDS.SETUP));
-addSoundToListener(backToSetupFromHistory, 'click', () => showView(VIEW_IDS.SETUP));
-addSoundToListener(backToSetupFromNotebook, 'click', () => showView(VIEW_IDS.SETUP));
+addSoundToListener(backToSetupFromLibrary, 'click', () => showView('setup-view'));
+addSoundToListener(backToSetupFromHistory, 'click', () => showView('setup-view'));
+addSoundToListener(backToSetupFromNotebook, 'click', () => showView('setup-view'));
 addSoundToListener(viewHistoryFromResultButton, 'click', showHistory);
 addSoundToListener(nextQuestionButton, 'click', moveToNextQuestion);
 addSoundToListener(translateQuestionBtn, 'click', () => showTranslationModal(getTranslation(questionText.textContent)));
@@ -2537,19 +2614,21 @@ addSoundToListener(closeTranslationModal, 'click', () => hideModal(translationMo
 addSoundToListener(closeVocabModal, 'click', () => hideModal(vocabModal));
 addSoundToListener(closeReinforceModal, 'click', () => hideModal(reinforceModal));
 addSoundToListener(closeWordInfoModal, 'click', () => hideModal(wordInfoModal));
-addSoundToListener(backToPreviousViewButton, 'click', () => showView(appState.quiz.reviewCameFrom));
-addSoundToListener(backToSetupFromWriting, 'click', () => { appState.quiz.type === 'path' ? showLearningPath() : showView(VIEW_IDS.SETUP); });
+addSoundToListener(backToPreviousViewButton, 'click', () => showView(reviewCameFrom));
+addSoundToListener(backToSetupFromWriting, 'click', () => { currentQuizType === 'path' ? showLearningPath() : showView('setup-view'); });
 addSoundToListener(getFeedbackButton, 'click', getWritingFeedback);
-addSoundToListener(startPlacementTestButton, 'click', () => showView(VIEW_IDS.ASSESSMENT_CHOICE));
-addSoundToListener(backToSetupFromChoice, 'click', () => showView(VIEW_IDS.SETUP));
+addSoundToListener(startPlacementTestButton, 'click', () => showView('assessment-choice-view'));
+addSoundToListener(backToSetupFromChoice, 'click', () => showView('setup-view'));
 addSoundToListener(startTraditionalTestButton, 'click', startPlacementTest);
 addSoundToListener(startDiagnosticConversationButton, 'click', startDiagnosticConversation);
-addSoundToListener(backToSetupFromPlacement, 'click', () => showView(VIEW_IDS.SETUP));
+addSoundToListener(backToSetupFromPlacement, 'click', () => showView('setup-view'));
 addSoundToListener(createPathButton, 'click', showGoalSetting);
 addSoundToListener(continuePathButton, 'click', showLearningPath);
-addSoundToListener(backToSetupFromPath, 'click', () => showView(VIEW_IDS.SETUP));
+addSoundToListener(backToSetupFromPath, 'click', () => showView('setup-view'));
 addSoundToListener(backToPathFromReinforcement, 'click', showLearningPath);
 addSoundToListener(retryPathStepFromReinforcement, 'click', startPathStep);
+
+// NOTEBOOK V6 Listeners
 addSoundToListener(showNotebookButton, 'click', showNotebook);
 addSoundToListener(createNewDeckButton, 'click', createNewDeck);
 addSoundToListener(backToDecksView, 'click', showNotebook);
@@ -2560,8 +2639,6 @@ addSoundToListener(moveSelectedWordsButton, 'click', showMoveWordsModal);
 addSoundToListener(moveWordOkBtn, 'click', moveSelectedWords);
 addSoundToListener(moveWordCancelBtn, 'click', () => hideModal(moveWordModal));
 addSoundToListener(closeReviewOptionsModal, 'click', () => hideModal(reviewOptionsModal));
-addSoundToListener(toggleDiagnosticSpeechBtn, 'click', toggleSpeech);
-addSoundToListener(togglePracticeSpeechBtn, 'click', toggleSpeech);
 
 reviewOptionsModal.addEventListener('click', (e) => {
     const button = e.target.closest('.review-option-btn');
@@ -2580,8 +2657,16 @@ selectAllWordsCheckbox.addEventListener('change', () => {
     updateDeckActionButtonsState();
 });
 
+// Speech Toggle Listeners
+addSoundToListener(toggleDiagnosticSpeechBtn, 'click', toggleSpeech);
+addSoundToListener(togglePracticeSpeechBtn, 'click', toggleSpeech);
+
+
+// Event Delegation for dynamically created elements
 appContainer.addEventListener('click', (e) => {
     const target = e.target;
+    
+    // CẬP NHẬT: Xử lý các nút loa trong hội thoại
     const speakBtn = target.closest('.speak-message-btn');
     if (speakBtn) {
         playSound('click');
@@ -2589,6 +2674,7 @@ appContainer.addEventListener('click', (e) => {
         playSpeech(textToSpeak);
         return;
     }
+
     const openDeckTarget = target.closest('[data-action="open-deck"]');
     if (openDeckTarget) { playSound('click'); const { deckId, deckName } = openDeckTarget.dataset; showDeckDetails(deckId, deckName); return; }
     if (target.classList.contains('edit-deck-btn')) { playSound('click'); const { deckId, deckName } = target.dataset; editDeckName(deckId, deckName); return; }
@@ -2596,8 +2682,9 @@ appContainer.addEventListener('click', (e) => {
     if (target.classList.contains('delete-word-btn')) { playSound('click'); const { wordId, deckId } = target.dataset; deleteWordFromDeck(wordId, deckId); return; }
     if (target.classList.contains('word-checkbox')) { updateDeckActionButtonsState(); return; }
     if (target.closest('.start-step-btn')) { playSound('click'); startPathStep(); return; }
-    if (target.closest('.reinforce-btn')) { playSound('click'); const resultIndex = parseInt(target.closest('.reinforce-btn').dataset.questionIndex, 10); const result = appState.quiz.sessionResults[resultIndex]; requestReinforcement(result.question, result.userAnswer); return; }
+    if (target.closest('.reinforce-btn')) { playSound('click'); const resultIndex = parseInt(target.closest('.reinforce-btn').dataset.questionIndex, 10); const result = sessionResults[resultIndex]; requestReinforcement(result.question, result.userAnswer); return; }
 });
+
 
 quizTypeSelect.addEventListener('change', handleQuizTypeChange);
 topicSelect.addEventListener('change', () => {
@@ -2615,7 +2702,7 @@ playAudioBtn.addEventListener('click', () => {
         isPausedByUser = true; synth.cancel(); audioState = 'paused';
         playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden');
         audioStatus.textContent = "Đã tạm dừng";
-    } else { playSpeech(appState.quiz.data.raw.script, lastSpokenCharIndex); }
+    } else { playSpeech(quizData.raw.script, lastSpokenCharIndex); }
 });
 
 showTranscriptBtn.addEventListener('click', () => {
@@ -2625,9 +2712,8 @@ showTranscriptBtn.addEventListener('click', () => {
 
 reviewAnswersButton.addEventListener('click', () => {
     playSound('click');
-    const { sessionResults, data } = appState.quiz;
-    const context = { passage: data.raw.passage || null, script: data.raw.script || null };
-    showReviewPage(sessionResults, context, VIEW_IDS.RESULT);
+    const context = { passage: quizData.raw.passage || null, script: quizData.raw.script || null };
+    showReviewPage(sessionResults, context, 'result-view');
 });
 
 writingInput.addEventListener('input', () => {
@@ -2642,47 +2728,28 @@ document.getElementById('quiz-view').addEventListener('click', (e) => {
     }
 });
 
-micButton.addEventListener('click', () => { if (appState.conversation.recognition) { playSound('click'); appState.conversation.recognition.start(); micButton.classList.add('mic-recording', 'bg-red-400'); micButton.disabled = true; } });
+// Listeners for conversation views
+micButton.addEventListener('click', () => { if (diagnosticConversationState.recognition) { playSound('click'); diagnosticConversationState.recognition.start(); micButton.classList.add('mic-recording', 'bg-red-400'); micButton.disabled = true; } });
 sendTextButton.addEventListener('click', () => { playSound('click'); handleDiagnosticResponse(conversationTextInput.value); });
 conversationTextInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { playSound('click'); handleDiagnosticResponse(conversationTextInput.value); } });
 addSoundToListener(endDiagnosticConversationButton, 'click', () => {
-    if (appState.conversation.diagnostic.isFinished) {
+    if (diagnosticConversationState.isFinished) {
         showPlacementResult();
     } else {
-        if (appState.conversation.recognition) appState.conversation.recognition.stop();
+        if (diagnosticConversationState.recognition) diagnosticConversationState.recognition.stop();
         if (synth.speaking) synth.cancel();
-        showView(VIEW_IDS.SETUP);
+        showView('setup-view');
     }
 });
 
-micPracticeButton.addEventListener('click', () => { if (appState.conversation.recognition) { playSound('click'); appState.conversation.recognition.start(); micPracticeButton.classList.add('mic-recording', 'bg-red-400'); micPracticeButton.disabled = true; } });
+micPracticeButton.addEventListener('click', () => { if (conversationPracticeState.recognition) { playSound('click'); conversationPracticeState.recognition.start(); micPracticeButton.classList.add('mic-recording', 'bg-red-400'); micPracticeButton.disabled = true; } });
 sendPracticeTextButton.addEventListener('click', () => { playSound('click'); handleConversationPracticeResponse(conversationPracticeTextInput.value); });
 conversationPracticeTextInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { playSound('click'); handleConversationPracticeResponse(conversationPracticeTextInput.value); } });
 addSoundToListener(endConversationPracticeButton, 'click', endConversationPractice);
-addSoundToListener(backToSetupFromConvFeedback, 'click', () => showView(VIEW_IDS.SETUP));
+addSoundToListener(backToSetupFromConvFeedback, 'click', () => showView('setup-view'));
+
 
 // Initial setup
-function initializeAppStyles() {
-    // TỐI ƯU: Thêm style cho hiệu ứng feedback bằng JS để không cần sửa file CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        .feedback-container {
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-        }
-        .feedback-container.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// --- App Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    handleQuizTypeChange();
-    toggleSpeech(); 
-    toggleSpeech(); 
-    initializeAppStyles();
-});
+handleQuizTypeChange();
+toggleSpeech(); // Set initial icon state to OFF
+toggleSpeech(); // Call twice to set default to ON
