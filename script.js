@@ -25,8 +25,8 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-pro" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -787,7 +787,7 @@ function renderQuiz() {
         // START: Cập nhật phụ đề cho bài kiểm tra
         if (quizData.quizType === 'grammar') {
             subtitleParts.push(`Chủ điểm: ${quizData.topic}`);
-        } else if (quizData.quizType !== 'general') { // 'general' is not a type, but this avoids adding topic for it
+        } else if (quizData.topic) {
             subtitleParts.push(`Chủ đề: ${quizData.topic}`);
         }
         // END: Cập nhật phụ đề cho bài kiểm tra
@@ -1208,7 +1208,7 @@ async function showResult() {
                     createdAt: serverTimestamp(), results: sessionResults, 
                     context: { passage: quizData.raw.passage || null, script: quizData.raw.script || null }
                 };
-                if (quizData.quizType !== 'grammar' || (quizData.quizType === 'grammar' && quizData.topic)) {
+                if (quizData.quizType === 'grammar' || quizData.topic) {
                     newResult.topic = quizData.topic;
                 }
                 if (quizData.quizType === 'vocabulary') { newResult.vocabMode = quizData.vocabMode; }
@@ -2773,11 +2773,15 @@ writingInput.addEventListener('input', () => {
     wordCount.textContent = `${count} từ`;
 });
 
+// START: Cập nhật event listener cho quiz-view
 document.getElementById('quiz-view').addEventListener('click', (e) => {
     if (e.target.classList.contains('lookup-word')) {
+        // Ngăn sự kiện click lan ra phần tử cha (nút đáp án)
+        e.stopPropagation(); 
         showWordInfo(e.target.textContent);
     }
 });
+// END: Cập nhật event listener
 
 // Listeners for conversation views
 micButton.addEventListener('click', () => { if (diagnosticConversationState.recognition) { playSound('click'); diagnosticConversationState.recognition.start(); micButton.classList.add('mic-recording', 'bg-red-400'); micButton.disabled = true; } });
