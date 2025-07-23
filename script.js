@@ -25,8 +25,8 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-pro" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -72,6 +72,13 @@ const wordInfoSpeakBtn = document.getElementById('wordInfoSpeakBtn');
 const wordInfoContent = document.getElementById('wordInfoContent');
 const saveWordFromInfoBtn = document.getElementById('saveWordFromInfoBtn');
 const closeWordInfoModal = document.getElementById('closeWordInfoModal');
+
+// START: Thêm các biến cho phần tử Ngữ pháp
+const grammarTopicContainer = document.getElementById('grammar-topic-container');
+const grammarTopicSelect = document.getElementById('grammar-topic-select');
+const customGrammarTopicContainer = document.getElementById('custom-grammar-topic-container');
+const customGrammarTopicInput = document.getElementById('custom-grammar-topic-input');
+// END: Thêm các biến cho phần tử Ngữ pháp
 
 // NOTEBOOK V6 DOM Elements
 const backToSetupFromNotebook = document.getElementById('backToSetupFromNotebook');
@@ -686,25 +693,42 @@ async function startQuiz(settings = null) {
     if (settings) {
         topic = settings.topic;
     } else {
-        const isTopicBased = quizType === 'vocabulary' || quizType === 'reading' || quizType === 'listening';
-        if (isTopicBased) {
-            if (topicSelect.value === 'custom') {
-                topic = customTopicInput.value.trim();
+        // START: Cập nhật logic lấy chủ đề
+        if (quizType === 'grammar') {
+            if (grammarTopicSelect.value === 'custom') {
+                topic = customGrammarTopicInput.value.trim();
                 if (!topic) {
-                    alert("Vui lòng nhập chủ đề tùy chỉnh của bạn.");
+                    alert("Vui lòng nhập chủ điểm ngữ pháp của bạn.");
                     return;
                 }
             } else {
-                topic = topicSelect.value;
+                topic = grammarTopicSelect.value;
             }
         } else {
-            topic = 'General';
+            const isTopicBased = quizType === 'vocabulary' || quizType === 'reading' || quizType === 'listening';
+            if (isTopicBased) {
+                if (topicSelect.value === 'custom') {
+                    topic = customTopicInput.value.trim();
+                    if (!topic) {
+                        alert("Vui lòng nhập chủ đề tùy chỉnh của bạn.");
+                        return;
+                    }
+                } else {
+                    topic = topicSelect.value;
+                }
+            } else {
+                topic = 'General';
+            }
         }
+        // END: Cập nhật logic lấy chủ đề
     }
     
     quizData = { topic, level, quizType, vocabMode, count };
     loadingTitle.textContent = 'Đang tạo bài kiểm tra...';
-    loadingMessage.textContent = `AI đang chuẩn bị các câu hỏi về chủ đề ${topic} cho bạn. Vui lòng chờ!`;
+    // START: Cập nhật thông báo tải
+    let loadingTopicText = quizType === 'grammar' ? `chủ điểm ${topic}` : `chủ đề ${topic}`;
+    loadingMessage.textContent = `AI đang chuẩn bị các câu hỏi về ${loadingTopicText} cho bạn. Vui lòng chờ!`;
+    // END: Cập nhật thông báo tải
     showView('loading-view');
     try {
         let prompt;
@@ -760,7 +784,13 @@ function renderQuiz() {
         quizTitle.textContent = typeMap[quizData.quizType];
         let subtitleParts = [];
         if (quizData.quizType === 'vocabulary') { subtitleParts.push(modeMap[quizData.vocabMode]); }
-        if (quizData.quizType !== 'grammar') { subtitleParts.push(`Chủ đề: ${quizData.topic}`); }
+        // START: Cập nhật phụ đề cho bài kiểm tra
+        if (quizData.quizType === 'grammar') {
+            subtitleParts.push(`Chủ điểm: ${quizData.topic}`);
+        } else if (quizData.quizType !== 'general') { // 'general' is not a type, but this avoids adding topic for it
+            subtitleParts.push(`Chủ đề: ${quizData.topic}`);
+        }
+        // END: Cập nhật phụ đề cho bài kiểm tra
         subtitleParts.push(`Trình độ: ${quizData.level.toUpperCase()}`);
         quizSubtitle.textContent = subtitleParts.join(' - ');
     }
@@ -1178,7 +1208,9 @@ async function showResult() {
                     createdAt: serverTimestamp(), results: sessionResults, 
                     context: { passage: quizData.raw.passage || null, script: quizData.raw.script || null }
                 };
-                if (quizData.quizType !== 'grammar') { newResult.topic = quizData.topic; }
+                if (quizData.quizType !== 'grammar' || (quizData.quizType === 'grammar' && quizData.topic)) {
+                    newResult.topic = quizData.topic;
+                }
                 if (quizData.quizType === 'vocabulary') { newResult.vocabMode = quizData.vocabMode; }
                 await addDoc(resultsCollectionRef, newResult);
                 userHistoryCache = []; 
@@ -1626,7 +1658,7 @@ function renderHistoryList() {
         const typeMap = { vocabulary: 'Từ vựng', reading: 'Đọc hiểu', grammar: 'Ngữ pháp', listening: 'Nghe hiểu', writing: 'Luyện viết' };
         const typeText = typeMap[data.type] || 'Không xác định';
         
-        const topicText = (data.type !== 'grammar') ? `<p class="font-bold text-base text-slate-800 capitalize">${data.topic} <span class="text-sm font-normal text-indigo-600">(${typeText})</span></p>` : `<p class="font-bold text-base text-slate-800 capitalize">${typeText}</p>`;
+        const topicText = (data.topic) ? `<p class="font-bold text-base text-slate-800 capitalize">${data.topic} <span class="text-sm font-normal text-indigo-600">(${typeText})</span></p>` : `<p class="font-bold text-base text-slate-800 capitalize">${typeText}</p>`;
         
         let scoreText;
         if (data.type === 'writing') {
@@ -1685,7 +1717,11 @@ function calculateStats(results) {
             totalCorrect += res.score; totalQuestions += res.totalQuestions;
             if (skillStats[res.type]) { skillStats[res.type].c += res.score; skillStats[res.type].t += res.totalQuestions; }
         }
-        if (res.type !== 'grammar') { if (!topicStats[res.topic]) topicStats[res.topic] = {c:0, t:0}; topicStats[res.topic].c += (res.type === 'writing' ? res.feedback.score : res.score); topicStats[res.topic].t += (res.type === 'writing' ? 100 : res.totalQuestions); }
+        if (res.topic) { 
+            if (!topicStats[res.topic]) topicStats[res.topic] = {c:0, t:0}; 
+            topicStats[res.topic].c += (res.type === 'writing' ? res.feedback.score : res.score); 
+            topicStats[res.topic].t += (res.type === 'writing' ? 100 : res.totalQuestions); 
+        }
     });
     return { totalCorrect, totalQuestions, skillStats, topicStats };
 }
@@ -2248,7 +2284,9 @@ async function saveQuizToLibrary(quizDataToSave) {
             creatorId: auth.currentUser.uid, level: quizDataToSave.level, quizType: quizDataToSave.quizType,
             count: quizDataToSave.count, quizContent: quizContent || {}, createdAt: serverTimestamp(), relatedVocabulary: relatedVocabulary
         };
-        if (quizDataToSave.quizType !== 'grammar') { dataToSave.topic = quizDataToSave.topic; }
+        if (quizDataToSave.quizType === 'grammar' || quizDataToSave.topic) {
+            dataToSave.topic = quizDataToSave.topic;
+        }
         if (quizDataToSave.quizType === 'vocabulary') { dataToSave.vocabMode = quizDataToSave.vocabMode; }
         await addDoc(libraryRef, dataToSave);
     } catch (error) { console.error("Error saving quiz to library:", error); }
@@ -2563,29 +2601,31 @@ function handleQuizTypeChange() {
     const isVocab = selectedType === 'vocabulary';
     const isWriting = selectedType === 'writing';
     const isConversation = selectedType === 'conversation';
+    const isGrammar = selectedType === 'grammar';
     const isTopicBased = isVocab || selectedType === 'reading' || selectedType === 'listening' || isWriting || isConversation;
     
+    // START: Cập nhật logic hiển thị
+    // Hiển thị/ẩn mục chọn chế độ từ vựng
     vocabModeContainer.style.maxHeight = isVocab ? '150px' : '0'; 
     vocabModeContainer.style.opacity = isVocab ? '1' : '0';
     vocabModeContainer.style.marginTop = isVocab ? '1.5rem' : '0';
     
-    questionCountContainer.style.display = (isWriting || isConversation) ? 'none' : 'block';
+    // Hiển thị/ẩn mục chọn chủ đề chung
+    const showGeneralTopic = isTopicBased && !isGrammar;
+    topicContainer.style.maxHeight = showGeneralTopic ? '150px' : '0';
+    topicContainer.style.opacity = showGeneralTopic ? '1' : '0';
+    topicContainer.style.marginTop = showGeneralTopic ? '1.5rem' : '0';
+    customTopicContainer.classList.toggle('hidden', !showGeneralTopic || topicSelect.value !== 'custom');
 
-    if (!isTopicBased) {
-        topicContainer.style.maxHeight = '0'; 
-        topicContainer.style.opacity = '0';
-        topicContainer.style.marginTop = '0';
-        customTopicContainer.classList.add('hidden');
-    } else {
-        topicContainer.style.maxHeight = '150px'; 
-        topicContainer.style.opacity = '1';
-        topicContainer.style.marginTop = '1.5rem';
-        if (topicSelect.value === 'custom') {
-            customTopicContainer.classList.remove('hidden');
-        } else {
-            customTopicContainer.classList.add('hidden');
-        }
-    }
+    // Hiển thị/ẩn mục chọn chủ điểm ngữ pháp
+    grammarTopicContainer.style.maxHeight = isGrammar ? '150px' : '0';
+    grammarTopicContainer.style.opacity = isGrammar ? '1' : '0';
+    grammarTopicContainer.style.marginTop = isGrammar ? '1.5rem' : '0';
+    customGrammarTopicContainer.classList.toggle('hidden', !isGrammar || grammarTopicSelect.value !== 'custom');
+
+    // Ẩn/hiện số lượng câu hỏi
+    questionCountContainer.style.display = (isWriting || isConversation) ? 'none' : 'block';
+    // END: Cập nhật logic hiển thị
 }
 
 const addSoundToListener = (element, event, callback) => {
@@ -2694,6 +2734,17 @@ topicSelect.addEventListener('change', () => {
         customTopicContainer.classList.add('hidden');
     }
 });
+
+// START: Thêm event listener cho mục chọn chủ điểm ngữ pháp
+grammarTopicSelect.addEventListener('change', () => {
+    if (grammarTopicSelect.value === 'custom') {
+        customGrammarTopicContainer.classList.remove('hidden');
+    } else {
+        customGrammarTopicContainer.classList.add('hidden');
+    }
+});
+// END: Thêm event listener
+
 filterSkill.addEventListener('change', renderHistoryList);
 filterLevel.addEventListener('change', renderHistoryList);
 
