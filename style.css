@@ -9,7 +9,11 @@ body { font-family: 'Be Vietnam Pro', sans-serif; }
 
 /* CẬP NHẬT: Thêm #deckList và #deckWordList vào danh sách các container có thể cuộn */
 #passageText, #transcriptContainer, #deckList, #deckWordList, #historyList, #reviewList, #libraryList, #writingFeedbackContainer, #reinforceContent, #learningPathContainer, #reinforcementReviewList, #conversationLog { max-height: 60vh; overflow-y: auto; }
-.topic-container, .vocab-mode-container, #customTopicContainer { transition: all 0.3s ease-in-out; overflow: hidden; }
+
+/* START: Thêm các container mới vào rule transition */
+.topic-container, .vocab-mode-container, #customTopicContainer, #grammar-topic-container, #custom-grammar-topic-container { transition: all 0.3s ease-in-out; overflow: hidden; }
+/* END: Thêm các container mới vào rule transition */
+
 
 /* --- Cải tiến UI/UX --- */
 @keyframes jiggle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
