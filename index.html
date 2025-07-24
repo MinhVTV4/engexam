@@ -90,7 +90,17 @@
                         </select>
                     </div>
                     
-                    <!-- START: Thêm mục chọn chủ điểm ngữ pháp -->
+                    <!-- START: Thêm mục chọn chế độ ngữ pháp -->
+                    <div id="grammarModeContainer" class="mt-4">
+                        <label for="grammarModeSelect" class="block text-md font-semibold mb-2 text-slate-700">Chọn chế độ:</label>
+                        <select id="grammarModeSelect" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition bg-white">
+                            <option value="multiple_choice" selected>Trắc nghiệm</option>
+                            <option value="fill_in_the_blank">Điền vào chỗ trống</option>
+                            <option value="error_correction">Tìm lỗi sai</option>
+                        </select>
+                    </div>
+                    <!-- END: Thêm mục chọn chế độ ngữ pháp -->
+
                     <div id="grammar-topic-container" class="mt-4">
                         <label for="grammar-topic-select" class="block text-md font-semibold mb-2 text-slate-700">Chọn chủ điểm ngữ pháp:</label>
                         <select id="grammar-topic-select" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition bg-white">
@@ -109,7 +119,6 @@
                         <label for="custom-grammar-topic-input" class="block text-md font-semibold mb-2 text-slate-700">Nhập chủ điểm ngữ pháp của bạn:</label>
                         <input type="text" id="custom-grammar-topic-input" placeholder="VD: Phrasal verbs, Reported speech..." class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition">
                     </div>
-                    <!-- END: Thêm mục chọn chủ điểm ngữ pháp -->
 
                     <div id="vocabModeContainer" class="vocab-mode-container mt-4">
                         <label for="vocabModeSelect" class="block text-md font-semibold mb-2 text-slate-700">Chọn chế độ:</label>
