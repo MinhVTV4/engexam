@@ -25,8 +25,8 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-pro" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -953,11 +953,31 @@ function renderQuestion() {
             shuffledOptions.forEach(option => {
                 const button = document.createElement('button');
                 button.className = "option-btn w-full text-left p-4 border-2 border-slate-300 rounded-lg hover:bg-slate-100 hover:border-sky-400 transition text-lg flex items-center justify-between";
+                
+                // START: Cập nhật cấu trúc nút đáp án
                 const optionText = document.createElement('span');
-                renderTextWithClickableWords(optionText, option); // Make words in options clickable
+                optionText.textContent = option; // Không dùng renderTextWithClickableWords nữa
+                
+                const infoIcon = document.createElement('button');
+                infoIcon.className = 'info-icon';
+                infoIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+                infoIcon.title = 'Tra cứu (dịch) cụm từ này';
+                
+                infoIcon.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Ngăn sự kiện click lan ra nút cha
+                    playSound('click');
+                    showTranslationModal(getTranslation(option));
+                });
+
                 button.appendChild(optionText);
+                button.appendChild(infoIcon);
+                // END: Cập nhật cấu trúc nút đáp án
+
                 button.onclick = () => handleAnswer(option);
-                if (quizData.quizType === 'listening') { button.disabled = true; button.classList.add('opacity-50', 'cursor-not-allowed'); }
+                if (quizData.quizType === 'listening') { 
+                    button.disabled = true; 
+                    button.classList.add('opacity-50', 'cursor-not-allowed'); 
+                }
                 optionsContainer.appendChild(button);
             });
             break;
@@ -1054,7 +1074,7 @@ function handleAnswer(selectedOption, isFlashcard = false) {
         isCorrect = selectedOption === currentQuestion.answer;
         Array.from(optionsContainer.children).forEach(button => {
             button.disabled = true; button.classList.add('opacity-70');
-            const buttonText = button.querySelector('span') ? button.querySelector('span').textContent : button.textContent;
+            const buttonText = button.querySelector('span').textContent; // Lấy text từ span bên trong
             if (buttonText === currentQuestion.answer) {
                 button.className = "option-btn correct w-full text-left p-4 border-2 border-green-500 bg-green-100 rounded-lg text-lg flex items-center justify-between font-semibold";
             } else if (buttonText === selectedOption) {
@@ -2775,10 +2795,10 @@ writingInput.addEventListener('input', () => {
 
 // START: Cập nhật event listener cho quiz-view
 document.getElementById('quiz-view').addEventListener('click', (e) => {
-    if (e.target.classList.contains('lookup-word')) {
+    if (e.target.closest('.lookup-word')) { // Sử dụng closest để bắt cả click vào SVG bên trong
         // Ngăn sự kiện click lan ra phần tử cha (nút đáp án)
         e.stopPropagation(); 
-        showWordInfo(e.target.textContent);
+        showWordInfo(e.target.closest('.lookup-word').textContent);
     }
 });
 // END: Cập nhật event listener
