@@ -25,8 +25,8 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-pro" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -74,6 +74,8 @@ const saveWordFromInfoBtn = document.getElementById('saveWordFromInfoBtn');
 const closeWordInfoModal = document.getElementById('closeWordInfoModal');
 
 // START: Thêm các biến cho phần tử Ngữ pháp
+const grammarModeContainer = document.getElementById('grammarModeContainer');
+const grammarModeSelect = document.getElementById('grammarModeSelect');
 const grammarTopicContainer = document.getElementById('grammar-topic-container');
 const grammarTopicSelect = document.getElementById('grammar-topic-select');
 const customGrammarTopicContainer = document.getElementById('custom-grammar-topic-container');
@@ -393,6 +395,39 @@ function showTranslationModal(textPromise) {
 }
 
 // --- PROMPTS ---
+// START: Thêm prompts mới cho các chế độ ngữ pháp
+function getGrammarFillInTheBlankPrompt(level, topic, count) {
+    return `You are an expert English grammar teacher. Generate ${count} 'fill-in-the-blank' questions to test the grammar point: "${topic}" for a ${level} CEFR level learner. For each item, provide a sentence with "___" representing the blank, and the correct "answer" which is the word or short phrase that fits in the blank. Provide a brief, helpful explanation IN VIETNAMESE. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON array of objects: \`\`\`json
+[
+  {
+    "type": "fill_in_the_blank",
+    "question": "If I ___ you, I would study harder for the exam.",
+    "answer": "were",
+    "explanation": "Trong câu điều kiện loại 2, mệnh đề 'if' sử dụng 'were' cho tất cả các ngôi."
+  }
+]
+\`\`\``;
+}
+
+function getGrammarErrorCorrectionPrompt(level, topic, count) {
+    return `You are an expert English grammar teacher. Generate ${count} 'error_correction' questions to test the grammar point: "${topic}" for a ${level} CEFR level learner. For each item:
+1.  Provide a "question" which is a sentence containing ONE grammatical error.
+2.  Provide the "answer" which is ONLY the single corrected word or short phrase. The answer should NOT be the full sentence.
+3.  Provide a helpful "explanation" in VIETNAMESE detailing the error and why the correction is right.
+You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON array of objects. Example:
+\`\`\`json
+[
+  {
+    "type": "error_correction",
+    "question": "He have gone to the store before his mother came home.",
+    "answer": "had",
+    "explanation": "Lỗi sai thì: Khi một hành động xảy ra trước một hành động khác trong quá khứ, ta dùng thì Quá khứ hoàn thành (had + V3/ed). 'have' phải được sửa thành 'had'."
+  }
+]
+\`\`\``;
+}
+// END: Thêm prompts mới
+
 function getWordInfoPrompt(word) { return `Provide a simple Vietnamese definition, a simple English example sentence, and the IPA transcription for the word "${word}". You MUST wrap your entire response in a 'json' markdown code block. Example: \`\`\`json { "definition": "một thiết bị điện tử để lưu trữ và xử lý dữ liệu", "example": "I use my computer for work and study.", "ipa": "/kəmˈpjuːtər/" } \`\`\``; }
 function getPlacementTestPrompt() { return `You are an expert English assessment creator. Create a comprehensive placement test with exactly 12 multiple-choice questions to determine a user's CEFR level (from A2 to B2). The test MUST include: - 4 Grammar questions, with increasing difficulty (A2, B1, B1, B2). - 4 Vocabulary questions, with increasing difficulty (A2, B1, B1, B2) covering common topics. - 1 short reading passage (around 80-100 words, at a B1 level). - 4 multiple-choice questions based on the reading passage. For each question, provide one correct answer and three plausible distractors. The "answer" field MUST be the full text of the correct option. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object with a "passage" key (which can be an empty string for non-reading questions) and a "questions" key containing an array of 12 question objects. Example structure: \`\`\`json { "passage": "...", "questions": [ { "question": "...", "options": ["..."], "answer": "..." }, { "question": "...", "options": ["..."], "answer": "..." } ] } \`\`\``; }
 function getPlacementAnalysisPrompt(results) { const userAnswers = results.map(r => ({ question: r.question.question, userAnswer: r.userAnswer, correctAnswer: r.question.answer })); return `An English learner has just completed a placement test. Here are their results: ${JSON.stringify(userAnswers)}. Based on these answers, please perform the following tasks: 1.  Determine the user's approximate CEFR level (e.g., "A2", "B1", "B2"). 2.  Write a short, friendly analysis (2-3 sentences in Vietnamese) of their performance, highlighting one strength and one area for improvement. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object with "level" and "analysis" keys. Example: \`\`\`json { "level": "B1", "analysis": "Bạn có nền tảng ngữ pháp khá tốt và xử lý tốt các câu hỏi ở trình độ A2. Tuy nhiên, bạn cần cải thiện thêm vốn từ vựng ở các chủ đề chuyên sâu hơn để đạt trình độ B2." } \`\`\``; }
@@ -686,6 +721,7 @@ async function startQuiz(settings = null) {
     sessionResults = [];
     const quizType = settings ? settings.type : quizTypeSelect.value;
     const vocabMode = vocabModeSelect.value;
+    const grammarMode = grammarModeSelect.value;
     const level = settings ? settings.level : levelSelect.value;
     const count = settings ? (settings.count || 5) : questionCountSelect.value;
 
@@ -693,7 +729,6 @@ async function startQuiz(settings = null) {
     if (settings) {
         topic = settings.topic;
     } else {
-        // START: Cập nhật logic lấy chủ đề
         if (quizType === 'grammar') {
             if (grammarTopicSelect.value === 'custom') {
                 topic = customGrammarTopicInput.value.trim();
@@ -720,19 +755,16 @@ async function startQuiz(settings = null) {
                 topic = 'General';
             }
         }
-        // END: Cập nhật logic lấy chủ đề
     }
     
-    quizData = { topic, level, quizType, vocabMode, count };
+    quizData = { topic, level, quizType, vocabMode, grammarMode, count };
     loadingTitle.textContent = 'Đang tạo bài kiểm tra...';
-    // START: Cập nhật thông báo tải
     let loadingTopicText = quizType === 'grammar' ? `chủ điểm ${topic}` : `chủ đề ${topic}`;
     loadingMessage.textContent = `AI đang chuẩn bị các câu hỏi về ${loadingTopicText} cho bạn. Vui lòng chờ!`;
-    // END: Cập nhật thông báo tải
     showView('loading-view');
     try {
         let prompt;
-        if (quizType === 'vocabulary' || quizType === 'review') { // 'review' uses vocabulary prompts
+        if (quizType === 'vocabulary' || quizType === 'review') {
             switch(vocabMode) {
                 case 'fill_in_the_blank': prompt = getFillInTheBlankPrompt(level, topic, count); break;
                 case 'word_formation': prompt = getWordFormationPrompt(level, topic, count); break;
@@ -744,7 +776,19 @@ async function startQuiz(settings = null) {
             }
         }
         else if (quizType === 'reading') prompt = getReadingPrompt(level, topic, 3);
-        else if (quizType === 'grammar') prompt = getGrammarPrompt(level, topic, count);
+        else if (quizType === 'grammar') {
+            switch(grammarMode) {
+                case 'fill_in_the_blank':
+                    prompt = getGrammarFillInTheBlankPrompt(level, topic, count);
+                    break;
+                case 'error_correction':
+                    prompt = getGrammarErrorCorrectionPrompt(level, topic, count);
+                    break;
+                case 'multiple_choice':
+                default:
+                    prompt = getGrammarPrompt(level, topic, count);
+            }
+        }
         else if (quizType === 'listening') prompt = getListeningPrompt(level, topic, 3);
         
         const result = await model.generateContent(prompt);
@@ -780,17 +824,17 @@ function renderQuiz() {
     }
     else {
         const typeMap = { vocabulary: 'Luyện tập Từ vựng', reading: 'Luyện tập Đọc hiểu', grammar: 'Luyện tập Ngữ pháp', listening: 'Luyện tập Nghe hiểu', writing: 'Luyện Viết' };
-        const modeMap = { multiple_choice: 'Trắc nghiệm', fill_in_the_blank: 'Điền từ', word_formation: 'Dạng của từ', word_scramble: 'Sắp xếp chữ cái', matching: 'Nối từ', flashcard: 'Flashcards' };
+        const modeMap = { multiple_choice: 'Trắc nghiệm', fill_in_the_blank: 'Điền từ', word_formation: 'Dạng của từ', word_scramble: 'Sắp xếp chữ cái', matching: 'Nối từ', flashcard: 'Flashcards', error_correction: 'Tìm lỗi sai' };
         quizTitle.textContent = typeMap[quizData.quizType];
         let subtitleParts = [];
         if (quizData.quizType === 'vocabulary') { subtitleParts.push(modeMap[quizData.vocabMode]); }
-        // START: Cập nhật phụ đề cho bài kiểm tra
-        if (quizData.quizType === 'grammar') {
-            subtitleParts.push(`Chủ điểm: ${quizData.topic}`);
-        } else if (quizData.topic) {
-            subtitleParts.push(`Chủ đề: ${quizData.topic}`);
+        if (quizData.quizType === 'grammar') { subtitleParts.push(modeMap[quizData.grammarMode]); }
+
+        if (quizData.topic) {
+            const topicLabel = (quizData.quizType === 'grammar') ? 'Chủ điểm' : 'Chủ đề';
+            subtitleParts.push(`${topicLabel}: ${quizData.topic}`);
         }
-        // END: Cập nhật phụ đề cho bài kiểm tra
+        
         subtitleParts.push(`Trình độ: ${quizData.level.toUpperCase()}`);
         quizSubtitle.textContent = subtitleParts.join(' - ');
     }
@@ -818,7 +862,16 @@ function renderQuestion() {
     optionsContainer.innerHTML = '';
     translateQuestionBtn.style.display = 'inline-block';
 
-    const questionType = currentQuestion.type || quizData.vocabMode || 'multiple_choice';
+    let questionType = currentQuestion.type;
+    if (!questionType) {
+        if (quizData.quizType === 'vocabulary') {
+            questionType = quizData.vocabMode;
+        } else if (quizData.quizType === 'grammar') {
+            questionType = quizData.grammarMode;
+        } else {
+            questionType = 'multiple_choice';
+        }
+    }
 
     switch (questionType) {
         case 'flashcard':
@@ -954,9 +1007,8 @@ function renderQuestion() {
                 const button = document.createElement('button');
                 button.className = "option-btn w-full text-left p-4 border-2 border-slate-300 rounded-lg hover:bg-slate-100 hover:border-sky-400 transition text-lg flex items-center justify-between";
                 
-                // START: Cập nhật cấu trúc nút đáp án
                 const optionText = document.createElement('span');
-                optionText.textContent = option; // Không dùng renderTextWithClickableWords nữa
+                optionText.textContent = option;
                 
                 const infoIcon = document.createElement('button');
                 infoIcon.className = 'info-icon';
@@ -964,14 +1016,13 @@ function renderQuestion() {
                 infoIcon.title = 'Tra cứu (dịch) cụm từ này';
                 
                 infoIcon.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Ngăn sự kiện click lan ra nút cha
+                    e.stopPropagation();
                     playSound('click');
                     showTranslationModal(getTranslation(option));
                 });
 
                 button.appendChild(optionText);
                 button.appendChild(infoIcon);
-                // END: Cập nhật cấu trúc nút đáp án
 
                 button.onclick = () => handleAnswer(option);
                 if (quizData.quizType === 'listening') { 
@@ -984,6 +1035,7 @@ function renderQuestion() {
 
         case 'fill_in_the_blank':
         case 'word_formation':
+        case 'error_correction':
             renderTextWithClickableWords(questionText, currentQuestion.question);
             optionsContainer.className = 'flex flex-col items-center gap-4';
             const input = document.createElement('input');
@@ -1061,7 +1113,17 @@ function handleAnswer(selectedOption, isFlashcard = false) {
 
     const questions = quizData.raw.questions || (Array.isArray(quizData.raw) ? quizData.raw : []);
     const currentQuestion = questions[currentQuestionIndex];
-    const questionType = currentQuestion.type || quizData.vocabMode || 'multiple_choice';
+    
+    let questionType = currentQuestion.type;
+    if (!questionType) {
+        if (quizData.quizType === 'vocabulary') {
+            questionType = quizData.vocabMode;
+        } else if (quizData.quizType === 'grammar') {
+            questionType = quizData.grammarMode;
+        } else {
+            questionType = 'multiple_choice';
+        }
+    }
     
     let isCorrect;
 
@@ -1074,7 +1136,7 @@ function handleAnswer(selectedOption, isFlashcard = false) {
         isCorrect = selectedOption === currentQuestion.answer;
         Array.from(optionsContainer.children).forEach(button => {
             button.disabled = true; button.classList.add('opacity-70');
-            const buttonText = button.querySelector('span').textContent; // Lấy text từ span bên trong
+            const buttonText = button.querySelector('span').textContent;
             if (buttonText === currentQuestion.answer) {
                 button.className = "option-btn correct w-full text-left p-4 border-2 border-green-500 bg-green-100 rounded-lg text-lg flex items-center justify-between font-semibold";
             } else if (buttonText === selectedOption) {
@@ -1232,6 +1294,7 @@ async function showResult() {
                     newResult.topic = quizData.topic;
                 }
                 if (quizData.quizType === 'vocabulary') { newResult.vocabMode = quizData.vocabMode; }
+                if (quizData.quizType === 'grammar') { newResult.grammarMode = quizData.grammarMode; }
                 await addDoc(resultsCollectionRef, newResult);
                 userHistoryCache = []; 
             } catch (e) { console.error("Lỗi khi lưu kết quả: ", e); }
@@ -2308,6 +2371,7 @@ async function saveQuizToLibrary(quizDataToSave) {
             dataToSave.topic = quizDataToSave.topic;
         }
         if (quizDataToSave.quizType === 'vocabulary') { dataToSave.vocabMode = quizDataToSave.vocabMode; }
+        if (quizDataToSave.quizType === 'grammar') { dataToSave.grammarMode = quizDataToSave.grammarMode; }
         await addDoc(libraryRef, dataToSave);
     } catch (error) { console.error("Error saving quiz to library:", error); }
 }
@@ -2348,7 +2412,8 @@ async function retrySavedQuiz(quizId) {
             currentQuizType = 'standard';
             quizData = {
                 topic: savedQuiz.topic, level: savedQuiz.level, quizType: savedQuiz.quizType,
-                vocabMode: savedQuiz.vocabMode, count: savedQuiz.count, raw: savedQuiz.quizContent, isRetry: true
+                vocabMode: savedQuiz.vocabMode, grammarMode: savedQuiz.grammarMode, 
+                count: savedQuiz.count, raw: savedQuiz.quizContent, isRetry: true
             };
             sessionResults = []; currentQuestionIndex = 0; score = 0;
             renderQuiz(); showView('quiz-view');
@@ -2624,28 +2689,25 @@ function handleQuizTypeChange() {
     const isGrammar = selectedType === 'grammar';
     const isTopicBased = isVocab || selectedType === 'reading' || selectedType === 'listening' || isWriting || isConversation;
     
-    // START: Cập nhật logic hiển thị
-    // Hiển thị/ẩn mục chọn chế độ từ vựng
     vocabModeContainer.style.maxHeight = isVocab ? '150px' : '0'; 
     vocabModeContainer.style.opacity = isVocab ? '1' : '0';
     vocabModeContainer.style.marginTop = isVocab ? '1.5rem' : '0';
     
-    // Hiển thị/ẩn mục chọn chủ đề chung
+    grammarModeContainer.style.maxHeight = isGrammar ? '150px' : '0';
+    grammarModeContainer.style.opacity = isGrammar ? '1' : '0';
+    grammarModeContainer.style.marginTop = isGrammar ? '1.5rem' : '0';
+
     const showGeneralTopic = isTopicBased && !isGrammar;
     topicContainer.style.maxHeight = showGeneralTopic ? '150px' : '0';
     topicContainer.style.opacity = showGeneralTopic ? '1' : '0';
     topicContainer.style.marginTop = showGeneralTopic ? '1.5rem' : '0';
     customTopicContainer.classList.toggle('hidden', !showGeneralTopic || topicSelect.value !== 'custom');
 
-    // Hiển thị/ẩn mục chọn chủ điểm ngữ pháp
     grammarTopicContainer.style.maxHeight = isGrammar ? '150px' : '0';
     grammarTopicContainer.style.opacity = isGrammar ? '1' : '0';
-    grammarTopicContainer.style.marginTop = isGrammar ? '1.5rem' : '0';
     customGrammarTopicContainer.classList.toggle('hidden', !isGrammar || grammarTopicSelect.value !== 'custom');
 
-    // Ẩn/hiện số lượng câu hỏi
     questionCountContainer.style.display = (isWriting || isConversation) ? 'none' : 'block';
-    // END: Cập nhật logic hiển thị
 }
 
 const addSoundToListener = (element, event, callback) => {
@@ -2793,15 +2855,12 @@ writingInput.addEventListener('input', () => {
     wordCount.textContent = `${count} từ`;
 });
 
-// START: Cập nhật event listener cho quiz-view
 document.getElementById('quiz-view').addEventListener('click', (e) => {
-    if (e.target.closest('.lookup-word')) { // Sử dụng closest để bắt cả click vào SVG bên trong
-        // Ngăn sự kiện click lan ra phần tử cha (nút đáp án)
+    if (e.target.closest('.lookup-word')) {
         e.stopPropagation(); 
         showWordInfo(e.target.closest('.lookup-word').textContent);
     }
 });
-// END: Cập nhật event listener
 
 // Listeners for conversation views
 micButton.addEventListener('click', () => { if (diagnosticConversationState.recognition) { playSound('click'); diagnosticConversationState.recognition.start(); micButton.classList.add('mic-recording', 'bg-red-400'); micButton.disabled = true; } });
