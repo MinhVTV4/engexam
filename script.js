@@ -25,8 +25,8 @@ try {
     db = getFirestore(app);
     const ai = getAI(app, { backend: new GoogleAIBackend() });
     
-    model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
-    fastModel = getGenerativeModel(ai, { model: "gemini-2.0-flash" });
+    model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+    fastModel = getGenerativeModel(ai, { model: "gemini-1.5-pro" });
 
 } catch(e) { 
     showError(`Lỗi khởi tạo: ${e.message}. Vui lòng kiểm tra cấu hình Firebase.`); 
@@ -393,7 +393,6 @@ function showTranslationModal(textPromise) {
 }
 
 // --- PROMPTS ---
-// START: Sửa lỗi và hoàn thiện prompts cho Ngữ pháp
 function getGrammarFillInTheBlankPrompt(level, topic, count) {
     return `You are an expert English grammar teacher. Generate ${count} 'fill_in_the_blank' questions to test the grammar point: "${topic}" for a ${level} CEFR level learner. For each item, provide a "question" which is a sentence with "___" representing the blank, and the correct "answer" which is the word or short phrase that fits in the blank. Provide a brief, helpful "explanation" IN VIETNAMESE. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON array of objects. Example: \`\`\`json
 [
@@ -424,7 +423,38 @@ You MUST wrap your entire response in a 'json' markdown code block. The structur
 ]
 \`\`\``;
 }
-// END: Sửa lỗi và hoàn thiện prompts
+
+// START: Thêm prompt cho "Mở rộng kiến thức"
+function getExpansionPrompt(question) {
+    const level = quizData.level;
+    const questionText = question.question || question.clue;
+    const options = question.options ? JSON.stringify(question.options) : 'N/A';
+    return `You are an expert and friendly English tutor AI. A student has correctly answered a quiz question and wants to learn more. Your task is to provide a short, insightful expansion on the topic.
+    The student is at the ${level} CEFR level.
+    Quiz question:
+    - Question: "${questionText}"
+    - Options (if any): ${options}
+    - Correct Answer: "${question.answer}"
+
+    Please generate a lesson in Vietnamese that expands on the core concept. You MUST wrap your entire response in a 'json' markdown code block. The JSON object must have the following structure:
+    1. "conceptTitle": A short, clear title for the expanded lesson (e.g., "Mở rộng về thì Hiện tại Hoàn thành").
+    2. "conceptExplanation": A slightly deeper explanation of the concept, or a comparison with a related concept.
+    3. "examples": An array of at least 2 distinct objects, each with an "en" and "vi" field, showcasing more advanced or nuanced usage.
+    4. "practiceTip": A final, encouraging tip for further study.
+    Example of the required JSON output:
+    \`\`\`json
+    {
+      "conceptTitle": "Mở rộng: So sánh Quá khứ đơn & Hiện tại hoàn thành",
+      "conceptExplanation": "Bạn đã dùng đúng thì Hiện tại hoàn thành! Điểm khác biệt chính là Quá khứ đơn diễn tả hành động đã chấm dứt hoàn toàn trong quá khứ, trong khi Hiện tại hoàn thành nhấn mạnh kết quả còn liên quan đến hiện tại.",
+      "examples": [
+        { "en": "I lost my keys yesterday. (I might have found them now)", "vi": "Tôi đã làm mất chìa khóa hôm qua. (Có thể bây giờ đã tìm thấy rồi)" },
+        { "en": "I have lost my keys. (I still can't find them now)", "vi": "Tôi đã làm mất chìa khóa rồi. (Bây giờ vẫn chưa tìm thấy)" }
+      ],
+      "practiceTip": "Hãy chú ý đến các trạng từ thời gian đi kèm để chọn đúng thì nhé!"
+    }
+    \`\`\``;
+}
+// END: Thêm prompt
 
 function getWordInfoPrompt(word) { return `Provide a simple Vietnamese definition, a simple English example sentence, and the IPA transcription for the word "${word}". You MUST wrap your entire response in a 'json' markdown code block. Example: \`\`\`json { "definition": "một thiết bị điện tử để lưu trữ và xử lý dữ liệu", "example": "I use my computer for work and study.", "ipa": "/kəmˈpjuːtər/" } \`\`\``; }
 function getPlacementTestPrompt() { return `You are an expert English assessment creator. Create a comprehensive placement test with exactly 12 multiple-choice questions to determine a user's CEFR level (from A2 to B2). The test MUST include: - 4 Grammar questions, with increasing difficulty (A2, B1, B1, B2). - 4 Vocabulary questions, with increasing difficulty (A2, B1, B1, B2) covering common topics. - 1 short reading passage (around 80-100 words, at a B1 level). - 4 multiple-choice questions based on the reading passage. For each question, provide one correct answer and three plausible distractors. The "answer" field MUST be the full text of the correct option. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object with a "passage" key (which can be an empty string for non-reading questions) and a "questions" key containing an array of 12 question objects. Example structure: \`\`\`json { "passage": "...", "questions": [ { "question": "...", "options": ["..."], "answer": "..." }, { "question": "...", "options": ["..."], "answer": "..." } ] } \`\`\``; }
@@ -457,12 +487,10 @@ function getConversationPracticeFeedbackPrompt(history, topic, level) { return `
 // --- Word Lookup & Rendering ---
 function renderTextWithClickableWords(container, text) {
     container.innerHTML = '';
-    // START: Thêm kiểm tra để tránh lỗi nếu text không hợp lệ
     if (typeof text !== 'string' || !text) {
         container.textContent = 'Lỗi: Không thể hiển thị nội dung câu hỏi.';
         return;
     }
-    // END: Thêm kiểm tra
     const words = text.split(/(\s+|[.,?!;:()])/);
     words.forEach(word => {
         const cleanedWord = word.trim().toLowerCase().replace(/[^a-z'-]/g, '');
@@ -1159,6 +1187,20 @@ function handleAnswer(selectedOption, isFlashcard = false) {
             let feedbackHTML = `<b class="font-bold">Chính xác!</b>`;
             if(currentQuestion.explanation) { feedbackHTML += `<p>${currentQuestion.explanation}</p>`; }
             feedbackContainer.innerHTML = feedbackHTML;
+
+            // START: Thêm nút "Mở rộng kiến thức"
+            if (currentQuizType === 'standard' && (quizData.quizType === 'grammar' || quizData.quizType === 'vocabulary')) {
+                const expandBtn = document.createElement('button');
+                expandBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-2"><path d="M14 9.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"></path><path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22z"></path><path d="M12 18v-2"></path><path d="M12 8V6"></path></svg>
+                    Mở rộng kiến thức
+                `;
+                expandBtn.className = 'mt-4 w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg text-md transition';
+                expandBtn.onclick = () => requestExpandedKnowledge(currentQuestion);
+                feedbackContainer.appendChild(expandBtn);
+            }
+            // END: Thêm nút
+
         } else {
             playSound('incorrect');
             feedbackContainer.className = 'mt-6 p-4 rounded-lg bg-red-100 text-red-800';
@@ -1199,7 +1241,7 @@ async function requestReinforcement(question, userAnswer) {
     showModal(reinforceModal);
     reinforceContent.innerHTML = '<div class="spinner mx-auto"></div>';
     reinforceTitle.textContent = "Bài học từ AI";
-
+    reinforceTitle.className = "text-2xl font-bold text-fuchsia-600"; // Đặt màu cho Củng cố
     try {
         const prompt = getReinforcementPrompt(question, userAnswer);
         const result = await model.generateContent(prompt);
@@ -1215,6 +1257,54 @@ async function requestReinforcement(question, userAnswer) {
         reinforceContent.innerHTML = `<p class="text-center text-red-500">Rất tiếc, không thể tạo bài học ngay lúc này. Lỗi: ${error.message}</p>`;
     }
 }
+
+// START: Thêm hàm yêu cầu và hiển thị kiến thức mở rộng
+async function requestExpandedKnowledge(question) {
+    showModal(reinforceModal);
+    reinforceContent.innerHTML = '<div class="spinner mx-auto"></div>';
+    reinforceTitle.textContent = "Mở rộng kiến thức";
+    reinforceTitle.className = "text-2xl font-bold text-teal-600"; // Đặt màu cho Mở rộng
+    try {
+        const prompt = getExpansionPrompt(question);
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const lessonData = extractAndParseJson(response.text());
+
+        if (!lessonData) {
+            throw new Error("AI không trả về bài học hợp lệ. Vui lòng thử lại.");
+        }
+        displayExpandedKnowledge(lessonData);
+
+    } catch (error) {
+        reinforceContent.innerHTML = `<p class="text-center text-red-500">Rất tiếc, không thể tạo bài học ngay lúc này. Lỗi: ${error.message}</p>`;
+    }
+}
+
+function displayExpandedKnowledge(data) {
+    reinforceTitle.textContent = data.conceptTitle;
+    reinforceContent.innerHTML = `
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <h4 class="text-md font-bold text-slate-800 mb-2">Giải thích sâu hơn</h4>
+            <div class="text-slate-700 space-y-2 prose">${marked.parse(data.conceptExplanation)}</div>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <h4 class="text-md font-bold text-slate-800 mb-2">Ví dụ nâng cao</h4>
+            <ul class="space-y-2">
+                ${data.examples.map(ex => `
+                    <li class="p-2 rounded-md bg-white">
+                        <p class="font-semibold text-sky-700">"${ex.en}"</p>
+                        <p class="text-xs text-slate-500 italic">→ ${ex.vi}</p>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+        <div class="bg-amber-50 p-3 rounded-lg border border-amber-200">
+            <h4 class="text-md font-bold text-amber-800 mb-1">💡 Mẹo ghi nhớ</h4>
+            <div class="text-amber-700 prose">${marked.parse(data.practiceTip)}</div>
+        </div>
+    `;
+}
+// END: Thêm hàm
 
 function displayReinforcement(data) {
     reinforceTitle.textContent = data.conceptTitle;
