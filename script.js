@@ -73,14 +73,12 @@ const wordInfoContent = document.getElementById('wordInfoContent');
 const saveWordFromInfoBtn = document.getElementById('saveWordFromInfoBtn');
 const closeWordInfoModal = document.getElementById('closeWordInfoModal');
 
-// START: Thêm các biến cho phần tử Ngữ pháp
 const grammarModeContainer = document.getElementById('grammarModeContainer');
 const grammarModeSelect = document.getElementById('grammarModeSelect');
 const grammarTopicContainer = document.getElementById('grammar-topic-container');
 const grammarTopicSelect = document.getElementById('grammar-topic-select');
 const customGrammarTopicContainer = document.getElementById('custom-grammar-topic-container');
 const customGrammarTopicInput = document.getElementById('custom-grammar-topic-input');
-// END: Thêm các biến cho phần tử Ngữ pháp
 
 // NOTEBOOK V6 DOM Elements
 const backToSetupFromNotebook = document.getElementById('backToSetupFromNotebook');
@@ -395,9 +393,9 @@ function showTranslationModal(textPromise) {
 }
 
 // --- PROMPTS ---
-// START: Thêm prompts mới cho các chế độ ngữ pháp
+// START: Sửa lỗi và hoàn thiện prompts cho Ngữ pháp
 function getGrammarFillInTheBlankPrompt(level, topic, count) {
-    return `You are an expert English grammar teacher. Generate ${count} 'fill-in-the-blank' questions to test the grammar point: "${topic}" for a ${level} CEFR level learner. For each item, provide a sentence with "___" representing the blank, and the correct "answer" which is the word or short phrase that fits in the blank. Provide a brief, helpful explanation IN VIETNAMESE. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON array of objects: \`\`\`json
+    return `You are an expert English grammar teacher. Generate ${count} 'fill_in_the_blank' questions to test the grammar point: "${topic}" for a ${level} CEFR level learner. For each item, provide a "question" which is a sentence with "___" representing the blank, and the correct "answer" which is the word or short phrase that fits in the blank. Provide a brief, helpful "explanation" IN VIETNAMESE. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON array of objects. Example: \`\`\`json
 [
   {
     "type": "fill_in_the_blank",
@@ -426,7 +424,7 @@ You MUST wrap your entire response in a 'json' markdown code block. The structur
 ]
 \`\`\``;
 }
-// END: Thêm prompts mới
+// END: Sửa lỗi và hoàn thiện prompts
 
 function getWordInfoPrompt(word) { return `Provide a simple Vietnamese definition, a simple English example sentence, and the IPA transcription for the word "${word}". You MUST wrap your entire response in a 'json' markdown code block. Example: \`\`\`json { "definition": "một thiết bị điện tử để lưu trữ và xử lý dữ liệu", "example": "I use my computer for work and study.", "ipa": "/kəmˈpjuːtər/" } \`\`\``; }
 function getPlacementTestPrompt() { return `You are an expert English assessment creator. Create a comprehensive placement test with exactly 12 multiple-choice questions to determine a user's CEFR level (from A2 to B2). The test MUST include: - 4 Grammar questions, with increasing difficulty (A2, B1, B1, B2). - 4 Vocabulary questions, with increasing difficulty (A2, B1, B1, B2) covering common topics. - 1 short reading passage (around 80-100 words, at a B1 level). - 4 multiple-choice questions based on the reading passage. For each question, provide one correct answer and three plausible distractors. The "answer" field MUST be the full text of the correct option. You MUST wrap your entire response in a 'json' markdown code block. The structure MUST be a valid JSON object with a "passage" key (which can be an empty string for non-reading questions) and a "questions" key containing an array of 12 question objects. Example structure: \`\`\`json { "passage": "...", "questions": [ { "question": "...", "options": ["..."], "answer": "..." }, { "question": "...", "options": ["..."], "answer": "..." } ] } \`\`\``; }
@@ -459,6 +457,12 @@ function getConversationPracticeFeedbackPrompt(history, topic, level) { return `
 // --- Word Lookup & Rendering ---
 function renderTextWithClickableWords(container, text) {
     container.innerHTML = '';
+    // START: Thêm kiểm tra để tránh lỗi nếu text không hợp lệ
+    if (typeof text !== 'string' || !text) {
+        container.textContent = 'Lỗi: Không thể hiển thị nội dung câu hỏi.';
+        return;
+    }
+    // END: Thêm kiểm tra
     const words = text.split(/(\s+|[.,?!;:()])/);
     words.forEach(word => {
         const cleanedWord = word.trim().toLowerCase().replace(/[^a-z'-]/g, '');
@@ -2788,7 +2792,6 @@ addSoundToListener(togglePracticeSpeechBtn, 'click', toggleSpeech);
 appContainer.addEventListener('click', (e) => {
     const target = e.target;
     
-    // CẬP NHẬT: Xử lý các nút loa trong hội thoại
     const speakBtn = target.closest('.speak-message-btn');
     if (speakBtn) {
         playSound('click');
@@ -2817,7 +2820,6 @@ topicSelect.addEventListener('change', () => {
     }
 });
 
-// START: Thêm event listener cho mục chọn chủ điểm ngữ pháp
 grammarTopicSelect.addEventListener('change', () => {
     if (grammarTopicSelect.value === 'custom') {
         customGrammarTopicContainer.classList.remove('hidden');
@@ -2825,7 +2827,6 @@ grammarTopicSelect.addEventListener('change', () => {
         customGrammarTopicContainer.classList.add('hidden');
     }
 });
-// END: Thêm event listener
 
 filterSkill.addEventListener('change', renderHistoryList);
 filterLevel.addEventListener('change', renderHistoryList);
