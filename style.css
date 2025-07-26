@@ -1,617 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Version Control App</title>
-    
-    <!-- Google Font: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- **NEW**: highlight.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+body { font-family: 'Be Vietnam Pro', sans-serif; }
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+.spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #0ea5e9; animation: spin 1s ease-in-out infinite; }
+.btn-spinner { width: 20px; height: 20px; border-width: 3px; border-left-color: white; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    <style>
-        /* Apply Inter font to the body */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background */
-            color: #374151; /* Dark gray text color */
-        }
-        
-        /* Custom styles for the code modal's pre/code block */
-        #codeModalContent pre {
-            max-height: 70vh; /* Limit height and make it scrollable */
-        }
+/* CẬP NHẬT: Thêm #deckList và #deckWordList vào danh sách các container có thể cuộn */
+#passageText, #transcriptContainer, #deckList, #deckWordList, #historyList, #reviewList, #libraryList, #writingFeedbackContainer, #reinforceContent, #learningPathContainer, #reinforcementReviewList, #conversationLog { max-height: 60vh; overflow-y: auto; }
 
-        /* Styling for buttons to add a subtle shadow and transition */
-        button {
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Styling for list items to add subtle shadow and transition */
-        .list-item {
-            transition: all 0.2s ease;
-        }
-        .list-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col">
-    <!-- Header Section -->
-    <header class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 shadow-lg flex justify-between items-center">
-        <h1 class="text-3xl font-bold">Version Control System</h1>
-        <div id="authStatus" class="flex items-center space-x-4">
-            <span id="userEmailDisplay" class="text-lg font-medium hidden"></span>
-            <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 hidden">
-                Đăng xuất
-            </button>
-        </div>
-    </header>
-
-    <!-- Login/Register Section -->
-    <div id="authSection" class="flex-grow flex items-center justify-center p-4">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Đăng nhập / Đăng ký</h2>
-            <div class="mb-4">
-                <label for="emailInput" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-                <input type="email" id="emailInput" placeholder="your@example.com" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
-            </div>
-            <div class="mb-6">
-                <label for="passwordInput" class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu:</label>
-                <input type="password" id="passwordInput" placeholder="********" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
-            </div>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-grow">
-                    Đăng nhập
-                </button>
-                <button id="registerBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-grow">
-                    Đăng ký
-                </button>
-            </div>
-            <p class="text-red-500 text-sm mt-4 text-center" id="authErrorMsg"></p>
-        </div>
-    </div>
-
-    <!-- Main Content Area (Hidden until authenticated) -->
-    <main id="mainAppContent" class="flex-grow container mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 hidden">
-        <!-- Left Panel: Applications List -->
-        <section class="bg-white p-6 rounded-lg shadow-md col-span-1 lg:col-span-3">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Applications</h2>
-            <button id="addNewAppBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mb-4 w-full">
-                Add New Application
-            </button>
-            <div id="applicationsList" class="space-y-3 max-h-96 overflow-y-auto pr-2">
-                <div class="text-gray-500 text-center py-4">Loading applications...</div>
-            </div>
-        </section>
-
-        <!-- Middle Panel: Versions List -->
-        <section class="bg-white p-6 rounded-lg shadow-md col-span-1 lg:col-span-3">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Versions for <span id="currentAppName" class="font-bold text-blue-600">No App Selected</span></h2>
-            <div id="versionsList" class="space-y-3 max-h-96 overflow-y-auto pr-2">
-                <div class="text-gray-500 text-center py-4">Select an application to see versions.</div>
-            </div>
-        </section>
-
-        <!-- Right Panel: Code Editor & Viewer -->
-        <section class="bg-white p-6 rounded-lg shadow-md col-span-1 lg:col-span-6">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-800">Code Editor</h2>
-
-            <div class="mb-4">
-                <label for="versionNotesInput" class="block text-gray-700 text-sm font-bold mb-2">Version Notes:</label>
-                <input type="text" id="versionNotesInput" placeholder="e.g., 'Initial commit', 'Bug fix for login'" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
-            </div>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-800">Files for this Version:</h3>
-            <div id="fileInputContainer" class="space-y-4 mb-4 border p-3 rounded-lg bg-gray-50">
-                <div class="text-gray-500 text-center py-2">Click "Thêm tệp mới" to add files.</div>
-            </div>
-            <button id="addFileInputBtn" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mb-6 w-full">
-                Thêm tệp mới
-            </button>
-
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <button id="saveVersionBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 flex-grow">
-                    Lưu phiên bản mới
-                </button>
-            </div>
-
-            <h3 class="text-xl font-semibold mb-3 text-gray-800">Tệp trong phiên bản:</h3>
-            <div id="versionFilesList" class="space-y-2 mb-4 max-h-64 overflow-y-auto pr-2 border p-3 rounded-lg bg-gray-50">
-                <div class="text-gray-500 text-center py-2">Chọn một phiên bản để xem các tệp của nó.</div>
-            </div>
-
-            <!-- **REMOVED**: Old code viewer area is gone -->
-        </section>
-    </main>
-
-    <!-- **NEW**: Modal for viewing code -->
-    <div id="codeModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl flex flex-col">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center p-4 border-b border-gray-700">
-                <h3 id="modalFileName" class="text-xl font-bold text-white"></h3>
-                <div>
-                    <button id="modalCopyCodeBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg mr-2">Sao chép</button>
-                    <button id="modalCloseBtn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg">&times;</button>
-                </div>
-            </div>
-            <!-- Modal Content -->
-            <div id="codeModalContent" class="p-4 overflow-auto">
-                <pre><code class="rounded-lg"></code></pre>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Add New App -->
-    <div id="addNewAppModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-            <h3 class="text-2xl font-bold mb-6 text-gray-800">Add New Application</h3>
-            <div class="mb-4">
-                <label for="newAppNameInput" class="block text-gray-700 text-sm font-bold mb-2">Application Name:</label>
-                <input type="text" id="newAppNameInput" placeholder="e.g., 'My Blog App'" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
-            </div>
-            <div class="flex justify-end gap-4">
-                <button id="cancelNewAppBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg transition duration-300">Cancel</button>
-                <button id="confirmNewAppBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Add Application</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Alert/Message Box -->
-    <div id="messageBox" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg hidden z-50 transition-opacity duration-300 opacity-0">
-        <span id="messageContent"></span>
-    </div>
-
-    <!-- Firebase SDK and custom script -->
-    <script type="module">
-        // Firebase imports...
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, getDocs, getDoc, onSnapshot, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyD7I9ZKYFTc71tFMGA2lM72ykwDuwhEV0o",
-            authDomain: "tudien-b2d17.firebaseapp.com",
-            projectId: "tudien-b2d17",
-            storageBucket: "tudien-b2d17.firebasestorage.app",
-            messagingSenderId: "496472238606",
-            appId: "1:496472238606:web:79769d3c38e546a27dea5f"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // Global state variables
-        let currentAppId = null;
-        let currentAppName = null;
-        let userId = null;
-        let isAuthReady = false;
-        let fileInputCounter = 0;
-        let activeFileElements = {};
-
-        // DOM element references
-        const applicationsList = document.getElementById('applicationsList');
-        const versionsList = document.getElementById('versionsList');
-        const currentAppNameSpan = document.getElementById('currentAppName');
-        const versionNotesInput = document.getElementById('versionNotesInput');
-        const saveVersionBtn = document.getElementById('saveVersionBtn');
-        const addNewAppBtn = document.getElementById('addNewAppBtn');
-        const addNewAppModal = document.getElementById('addNewAppModal');
-        const newAppNameInput = document.getElementById('newAppNameInput');
-        const confirmNewAppBtn = document.getElementById('confirmNewAppBtn');
-        const cancelNewAppBtn = document.getElementById('cancelNewAppBtn');
-        const messageBox = document.getElementById('messageBox');
-        const messageContent = document.getElementById('messageContent');
-        const authSection = document.getElementById('authSection');
-        const mainAppContent = document.getElementById('mainAppContent');
-        const emailInput = document.getElementById('emailInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userEmailDisplay = document.getElementById('userEmailDisplay');
-        const authErrorMsg = document.getElementById('authErrorMsg');
-        const fileInputContainer = document.getElementById('fileInputContainer');
-        const addFileInputBtn = document.getElementById('addFileInputBtn');
-        const versionFilesList = document.getElementById('versionFilesList');
-
-        // **NEW**: Modal DOM elements
-        const codeModal = document.getElementById('codeModal');
-        const modalFileName = document.getElementById('modalFileName');
-        const modalCodeBlock = codeModal.querySelector('code');
-        const modalCloseBtn = document.getElementById('modalCloseBtn');
-        const modalCopyCodeBtn = document.getElementById('modalCopyCodeBtn');
-        
-        // --- Utility Functions ---
-        function showMessage(message, duration = 3000) {
-            messageContent.textContent = message;
-            messageBox.classList.remove('hidden', 'opacity-0');
-            messageBox.classList.add('opacity-100');
-            setTimeout(() => {
-                messageBox.classList.remove('opacity-100');
-                messageBox.classList.add('opacity-0');
-                setTimeout(() => messageBox.classList.add('hidden'), 300);
-            }, duration);
-        }
-
-        function showAuthError(message) {
-            authErrorMsg.textContent = message;
-            authErrorMsg.classList.remove('hidden');
-            setTimeout(() => authErrorMsg.classList.add('hidden'), 5000);
-        }
-
-        // --- Code Modal Functions ---
-        /**
-         * **NEW**: Displays the code viewer modal with highlighted code.
-         * @param {string} content - The code content to display.
-         * @param {string} filename - The name of the file.
-         */
-        function showCodeInModal(content, filename) {
-            modalFileName.textContent = filename;
-            modalCodeBlock.textContent = content; // Set raw text content
-            
-            // Remove any existing language class to let highlight.js auto-detect
-            modalCodeBlock.className = 'rounded-lg'; 
-            
-            // Apply syntax highlighting
-            hljs.highlightElement(modalCodeBlock);
-            
-            // Show the modal
-            codeModal.classList.remove('hidden');
-        }
-
-        /**
-         * **NEW**: Hides the code viewer modal.
-         */
-        function hideCodeModal() {
-            codeModal.classList.add('hidden');
-            modalCodeBlock.textContent = ''; // Clear content
-        }
-
-        /**
-         * **NEW**: Copies the code from the modal to the clipboard.
-         */
-        function copyCodeFromModal() {
-            const codeToCopy = modalCodeBlock.textContent;
-            if (!codeToCopy) {
-                showMessage('Không có mã để sao chép.', 3000);
-                return;
-            }
-            try {
-                const textArea = document.createElement("textarea");
-                textArea.value = codeToCopy;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                document.execCommand('copy');
-                textArea.remove();
-                showMessage('Mã đã được sao chép vào clipboard!', 2000);
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-                showMessage('Sao chép mã thất bại.', 4000);
-            }
-        }
+/* START: Thêm các container mới vào rule transition */
+.topic-container, .vocab-mode-container, #customTopicContainer, #grammar-topic-container, #custom-grammar-topic-container { transition: all 0.3s ease-in-out; overflow: hidden; }
+/* END: Thêm các container mới vào rule transition */
 
 
-        // --- Firebase Authentication ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                userEmailDisplay.textContent = user.email || "Người dùng ẩn danh";
-                userEmailDisplay.classList.remove('hidden');
-                logoutBtn.classList.remove('hidden');
-                authSection.classList.add('hidden');
-                mainAppContent.classList.remove('hidden');
-            } else {
-                userId = null;
-                userEmailDisplay.classList.add('hidden');
-                logoutBtn.classList.add('hidden');
-                authSection.classList.remove('hidden');
-                mainAppContent.classList.add('hidden');
-            }
-            isAuthReady = true;
-            if (isAuthReady && userId) {
-                loadApplications();
-            } else if (isAuthReady && !userId) {
-                applicationsList.innerHTML = '<div class="text-gray-500 text-center py-4">Vui lòng đăng nhập để xem ứng dụng.</div>';
-                versionsList.innerHTML = '<div class="text-gray-500 text-center py-4">Vui lòng đăng nhập để xem phiên bản.</div>';
-                currentAppNameSpan.textContent = 'No App Selected';
-            }
-        });
+/* --- Cải tiến UI/UX --- */
+@keyframes jiggle { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
-        // Login, Register, Logout functions (handleLogin, handleRegister, handleLogout) remain the same...
-        async function handleRegister() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            if (!email || !password) {
-                showAuthError("Vui lòng nhập email và mật khẩu.");
-                return;
-            }
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessage("Đăng ký thành công! Bạn đã được đăng nhập.", 3000);
-                authErrorMsg.textContent = '';
-            } catch (error) {
-                let errorMessage = "Đăng ký thất bại. Vui lòng thử lại.";
-                if (error.code === 'auth/email-already-in-use') errorMessage = "Email này đã được sử dụng.";
-                else if (error.code === 'auth/weak-password') errorMessage = "Mật khẩu phải có ít nhất 6 ký tự.";
-                showAuthError(errorMessage);
-            }
-        }
+.option-btn.correct { animation: jiggle 0.4s ease-in-out; }
+.option-btn.incorrect { animation: shake 0.4s ease-in-out; }
 
-        async function handleLogin() {
-            const email = emailInput.value.trim();
-            const password = passwordInput.value.trim();
-            if (!email || !password) {
-                showAuthError("Vui lòng nhập email và mật khẩu.");
-                return;
-            }
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                showMessage("Đăng nhập thành công!", 3000);
-                authErrorMsg.textContent = '';
-            } catch (error) {
-                showAuthError("Email hoặc mật khẩu không đúng.");
-            }
-        }
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-content {
+    background-color: white; padding: 2rem; border-radius: 1.25rem;
+    max-width: 90%; width: 600px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    position: relative; transform: scale(0.95) translateY(10px); opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+.modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
 
-        async function handleLogout() {
-            try {
-                await signOut(auth);
-                showMessage("Bạn đã đăng xuất.", 3000);
-            } catch (error) {
-                showMessage("Đăng xuất thất bại.", 4000);
-            }
-        }
+.translate-icon { cursor: pointer; color: #3b82f6; margin-left: 8px; font-size: 1.25rem; display: inline-block; vertical-align: middle; }
+.highlight-word { background-color: #facc15; color: #1f2937; padding: 2px 0; border-radius: 3px; }
 
-        // --- Firestore Data Paths ---
-        const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-version-control-app';
-        const getApplicationsCollectionRef = () => collection(db, `artifacts/${canvasAppId}/users/${userId}/applications`);
-        const getVersionsCollectionRef = (appId) => collection(db, `artifacts/${canvasAppId}/users/${userId}/applications/${appId}/versions`);
-        const getFilesCollectionRef = (appId, versionId) => collection(db, `artifacts/${canvasAppId}/users/${userId}/applications/${appId}/versions/${versionId}/files`);
+/* --- Word Lookup Styles --- */
+.lookup-word { cursor: pointer; }
+.lookup-word:hover { background-color: #e0f2fe; }
+.saved-word-highlight { border-bottom: 2px dotted #22c55e; cursor: help; }
+.saved-word-highlight:hover { background-color: #dcfce7; }
+.speak-btn { background: none; border: none; cursor: pointer; }
 
-        // --- UI Rendering Functions ---
-        async function loadApplications() {
-            if (!isAuthReady || !userId) {
-                applicationsList.innerHTML = '<div class="text-gray-500 text-center py-4">Vui lòng đăng nhập để xem ứng dụng.</div>';
-                return;
-            }
-            applicationsList.innerHTML = '<div class="text-gray-500 text-center py-4">Đang tải ứng dụng...</div>';
-            try {
-                const q = query(getApplicationsCollectionRef(), orderBy('name'));
-                onSnapshot(q, (snapshot) => {
-                    applicationsList.innerHTML = '';
-                    if (snapshot.empty) {
-                        applicationsList.innerHTML = '<div class="text-gray-500 text-center py-4">Không tìm thấy ứng dụng nào.</div>';
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const app = doc.data();
-                        const appItem = document.createElement('div');
-                        appItem.id = `app-${doc.id}`;
-                        appItem.className = 'list-item bg-gray-100 hover:bg-blue-100 p-3 rounded-lg cursor-pointer transition duration-200 shadow-sm flex justify-between items-center';
-                        appItem.innerHTML = `<span class="font-medium text-gray-700">${app.name}</span>`;
-                        appItem.onclick = () => selectApplication(doc.id, app.name);
-                        applicationsList.appendChild(appItem);
-                    });
-                    if (currentAppId) {
-                        document.getElementById(`app-${currentAppId}`)?.classList.add('bg-blue-200', 'border-blue-500', 'border-2');
-                    }
-                });
-            } catch (error) {
-                console.error("Error loading applications:", error);
-                applicationsList.innerHTML = '<div class="text-red-500 text-center py-4">Lỗi khi tải ứng dụng.</div>';
-            }
-        }
 
-        async function selectApplication(appId, appName) {
-            currentAppId = appId;
-            currentAppName = appName;
-            currentAppNameSpan.textContent = appName;
-            document.querySelectorAll('#applicationsList > div').forEach(item => item.classList.remove('bg-blue-200', 'border-blue-500', 'border-2'));
-            document.getElementById(`app-${appId}`)?.classList.add('bg-blue-200', 'border-blue-500', 'border-2');
-            loadVersions(appId);
-            clearFileInputs();
-            versionNotesInput.value = '';
-            versionFilesList.innerHTML = '<div class="text-gray-500 text-center py-2">Chọn một phiên bản để xem các tệp của nó.</div>';
-        }
+/* Flashcard Styles */
+.flashcard-container { perspective: 1000px; }
+.flashcard { width: 100%; min-height: 250px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+.flashcard.flipped { transform: rotateY(180deg); }
+.flashcard-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; border-radius: 1rem; border: 2px solid; }
+.flashcard-front { background-color: #e0f2fe; border-color: #7dd3fc; color: #075985; }
+.flashcard-back { background-color: #f0fdf4; border-color: #86efac; color: #15803d; transform: rotateY(180deg); }
 
-        async function loadVersions(appId) {
-            if (!isAuthReady || !userId || !appId) return;
-            versionsList.innerHTML = '<div class="text-gray-500 text-center py-4">Đang tải phiên bản...</div>';
-            try {
-                const q = query(getVersionsCollectionRef(appId), orderBy('timestamp', 'desc'));
-                onSnapshot(q, (snapshot) => {
-                    versionsList.innerHTML = '';
-                    if (snapshot.empty) {
-                        versionsList.innerHTML = '<div class="text-gray-500 text-center py-4">Không tìm thấy phiên bản nào.</div>';
-                        return;
-                    }
-                    snapshot.forEach(doc => {
-                        const version = doc.data();
-                        const versionItem = document.createElement('div');
-                        versionItem.id = `version-${doc.id}`;
-                        versionItem.className = 'list-item bg-gray-100 hover:bg-blue-100 p-3 rounded-lg cursor-pointer transition duration-200 shadow-sm';
-                        const date = new Date(version.timestamp);
-                        versionItem.innerHTML = `
-                            <p class="font-medium text-gray-700">Phiên bản: ${version.versionNumber}</p>
-                            <p class="text-sm text-gray-500">${version.notes || 'Không có ghi chú'}</p>
-                            <p class="text-xs text-gray-400">${date.toLocaleString()}</p>`;
-                        versionItem.onclick = () => selectVersion(appId, doc.id);
-                        versionsList.appendChild(versionItem);
-                    });
-                });
-            } catch (error) {
-                console.error("Error loading versions:", error);
-                versionsList.innerHTML = '<div class="text-red-500 text-center py-4">Lỗi khi tải phiên bản.</div>';
-            }
-        }
+/* Writing View Styles */
+#writingFeedbackContainer del { background-color: #fee2e2; text-decoration: line-through; color: #991b1b; padding: 2px; border-radius: 3px; }
+#writingFeedbackContainer ins { background-color: #dcfce7; text-decoration: none; color: #166534; padding: 2px; border-radius: 3px; }
 
-        async function selectVersion(appId, versionId) {
-            if (!isAuthReady || !userId || !appId || !versionId) return;
-            document.querySelectorAll('#versionsList > div').forEach(item => item.classList.remove('bg-blue-200', 'border-blue-500', 'border-2'));
-            document.getElementById(`version-${versionId}`)?.classList.add('bg-blue-200', 'border-blue-500', 'border-2');
-            clearFileInputs();
-            versionFilesList.innerHTML = '<div class="text-gray-500 text-center py-2">Đang tải các tệp...</div>';
-            try {
-                const filesQuery = query(getFilesCollectionRef(appId, versionId));
-                const filesSnapshot = await getDocs(filesQuery);
-                versionFilesList.innerHTML = '';
-                if (!filesSnapshot.empty) {
-                    filesSnapshot.forEach(fileDoc => {
-                        const fileData = fileDoc.data();
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'list-item bg-gray-100 hover:bg-blue-100 p-2 rounded-lg cursor-pointer transition duration-200 shadow-sm text-sm';
-                        fileItem.textContent = fileData.filename;
-                        // **MODIFIED**: On click, show the code in the modal
-                        fileItem.onclick = () => showCodeInModal(fileData.content, fileData.filename);
-                        versionFilesList.appendChild(fileItem);
-                    });
-                } else {
-                    versionFilesList.innerHTML = '<div class="text-gray-500 text-center py-2">Không tìm thấy tệp nào.</div>';
-                }
-            } catch (error) {
-                console.error("Error loading files for version:", error);
-                versionFilesList.innerHTML = '<div class="text-red-500 text-center py-2">Lỗi khi tải tệp.</div>';
-            }
-        }
+/* Styles for Marked.js output */
+.prose p { margin-bottom: 0.75rem; }
+.prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.prose li { margin-bottom: 0.25rem; }
+.prose strong { font-weight: 600; }
 
-        // Multi-file input management functions (addFileInput, clearFileInputs, inferMimeType) remain the same...
-        function addFileInput() {
-            fileInputCounter++;
-            const fileId = `file-${fileInputCounter}`;
-            const fileGroup = document.createElement('div');
-            fileGroup.id = fileId;
-            fileGroup.className = 'border p-3 rounded-lg bg-white shadow-sm flex flex-col gap-2';
-            fileGroup.innerHTML = `
-                <div class="flex items-center justify-between mb-2">
-                    <label class="block text-gray-700 text-sm font-bold">Tên tệp:</label>
-                    <button type="button" class="remove-file-btn bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-2 rounded-full" data-file-id="${fileId}">Xóa</button>
-                </div>
-                <input type="text" placeholder="e.g., index.html" class="filename-input shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700">
-                <label class="block text-gray-700 text-sm font-bold mb-1">Nội dung mã:</label>
-                <textarea rows="10" class="filecontent-input shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 font-mono text-sm" placeholder="Dán mã của bạn vào đây..."></textarea>
-            `;
-            if (fileInputContainer.querySelector('.text-gray-500')) {
-                fileInputContainer.innerHTML = '';
-            }
-            fileInputContainer.appendChild(fileGroup);
-            activeFileElements[fileId] = fileGroup;
-            fileGroup.querySelector('.remove-file-btn').addEventListener('click', () => {
-                fileGroup.remove();
-                delete activeFileElements[fileId];
-            });
-        }
-
-        function clearFileInputs() {
-            fileInputContainer.innerHTML = '<div class="text-gray-500 text-center py-2">Click "Thêm tệp mới" to add files.</div>';
-            activeFileElements = {};
-            fileInputCounter = 0;
-            versionNotesInput.value = '';
-        }
-
-        // --- Action Functions ---
-        async function saveVersion() {
-            if (!isAuthReady || !userId || !currentAppId) {
-                showMessage('Vui lòng chọn một ứng dụng trước khi lưu.', 3000);
-                return;
-            }
-            const filesToSave = [];
-            for (const fileId in activeFileElements) {
-                const fileGroup = activeFileElements[fileId];
-                const filename = fileGroup.querySelector('.filename-input').value.trim();
-                const content = fileGroup.querySelector('.filecontent-input').value.trim();
-                if (!filename || !content) {
-                    showMessage(`Tên tệp và nội dung không được để trống.`, 4000);
-                    return;
-                }
-                filesToSave.push({ filename, content });
-            }
-            if (filesToSave.length === 0) {
-                showMessage('Vui lòng thêm ít nhất một tệp.', 3000);
-                return;
-            }
-            try {
-                const newVersionRef = await addDoc(getVersionsCollectionRef(currentAppId), {
-                    versionNumber: `v${Date.now()}`,
-                    notes: versionNotesInput.value.trim() || 'No notes provided',
-                    timestamp: Date.now(),
-                });
-                for (const file of filesToSave) {
-                    await addDoc(getFilesCollectionRef(currentAppId, newVersionRef.id), file);
-                }
-                showMessage('Phiên bản mới đã được lưu thành công!', 3000);
-                clearFileInputs();
-            } catch (error) {
-                console.error("Error saving version:", error);
-                showMessage('Lưu phiên bản thất bại.', 5000);
-            }
-        }
-
-        async function addNewApplication() {
-            if (!isAuthReady || !userId) return;
-            const appName = newAppNameInput.value.trim();
-            if (!appName) {
-                showMessage('Tên ứng dụng không được để trống.', 3000);
-                return;
-            }
-            try {
-                await addDoc(getApplicationsCollectionRef(), { name: appName, createdAt: Date.now() });
-                showMessage(`Ứng dụng "${appName}" đã được thêm!`, 3000);
-                hideAddNewAppModal();
-            } catch (error) {
-                console.error("Error adding new application:", error);
-                showMessage('Thêm ứng dụng mới thất bại.', 5000);
-            }
-        }
-        
-        function showAddNewAppModal() {
-            if (!isAuthReady || !userId) {
-                showMessage('Vui lòng đăng nhập để thêm ứng dụng.', 3000);
-                return;
-            }
-            newAppNameInput.value = '';
-            addNewAppModal.classList.remove('hidden');
-        }
-
-        function hideAddNewAppModal() {
-            addNewAppModal.classList.add('hidden');
-        }
-
-        // --- Event Listeners ---
-        saveVersionBtn.addEventListener('click', saveVersion);
-        addNewAppBtn.addEventListener('click', showAddNewAppModal);
-        confirmNewAppBtn.addEventListener('click', addNewApplication);
-        cancelNewAppBtn.addEventListener('click', hideAddNewAppModal);
-        addFileInputBtn.addEventListener('click', addFileInput);
-        loginBtn.addEventListener('click', handleLogin);
-        registerBtn.addEventListener('click', handleRegister);
-        logoutBtn.addEventListener('click', handleLogout);
-
-        // **NEW**: Modal event listeners
-        modalCloseBtn.addEventListener('click', hideCodeModal);
-        modalCopyCodeBtn.addEventListener('click', copyCodeFromModal);
-        // Close modal if clicking on the background overlay
-        codeModal.addEventListener('click', (event) => {
-            if (event.target === codeModal) {
-                hideCodeModal();
-            }
-        });
-    </script>
-</body>
-</html>
+/* Diagnostic Conversation Styles */
+@keyframes mic-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(199, 210, 254, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(199, 210, 254, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(199, 210, 254, 0); }
+}
+.mic-recording { animation: mic-pulse 1.5s infinite; }
