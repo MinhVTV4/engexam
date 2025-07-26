@@ -103,6 +103,9 @@
     </div>
 
     <!-- Main Content Area (Hidden until authenticated) -->
+    <!-- On large screens (lg:), the grid is divided into 12 columns.
+         Applications and Versions take 3 columns each (25% + 25%),
+         and Code Editor & Viewer takes 6 columns (50%). -->
     <main id="mainAppContent" class="flex-grow container mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 hidden">
         <!-- Left Panel: Applications List -->
         <section class="bg-white p-6 rounded-lg shadow-md col-span-1 lg:col-span-3">
